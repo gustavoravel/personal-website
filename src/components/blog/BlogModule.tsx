@@ -43,15 +43,15 @@ export const BlogModule: React.FC<BlogModuleProps> = ({ posts, settings, onBackT
         <>
           {/* Header */}
           <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Módulo de Conteúdo &amp; Artigos</span>
+            <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary bg-primary/10 px-3.5 py-1.5 rounded-full border border-primary/25">
+              <BookOpen className="w-4 h-4" />
+              <span>Dicas Práticas</span>
             </div>
             <h1 className="text-3xl md:text-5xl font-extrabold text-on-surface">
-              Blog Tech Concierge: <span className="text-primary">Prática Sem Enrolação</span>
+              Dicas para <span className="text-primary">organizar seu atendimento</span>
             </h1>
-            <p className="text-on-surface-variant text-base">
-              Artigos práticos sobre WhatsApp Business, agendamentos automáticos, ferramentas de produção e automação de processos.
+            <p className="text-on-surface-variant text-lg leading-relaxed">
+              Coisas simples que você mesmo pode fazer no seu WhatsApp e na sua agenda, explicadas sem termos difíceis.
             </p>
           </div>
 

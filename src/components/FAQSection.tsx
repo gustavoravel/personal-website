@@ -17,15 +17,15 @@ export const FAQSection: React.FC<FAQSectionProps> = ({ faqs }) => {
     <section id="faq" className="py-20 px-gutter max-w-[1200px] mx-auto space-y-12">
       {/* Header */}
       <div className="text-center space-y-4 max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-          <HelpCircle className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary bg-primary/10 px-3.5 py-1.5 rounded-full border border-primary/25">
+          <HelpCircle className="w-4 h-4" />
           <span>Respostas Claras &amp; Sem Enrolação</span>
         </div>
-        <h2 className="text-3xl md:text-4xl font-bold text-on-surface">
-          Perguntas <span className="text-primary">Frequentes</span>
+        <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface">
+          As dúvidas que <span className="text-primary">todo mundo tem</span> antes de contratar
         </h2>
-        <p className="text-on-surface-variant text-base">
-          Tudo o que você precisa saber antes de contratar o seu diagnóstico gratuito.
+        <p className="text-on-surface-variant text-lg leading-relaxed">
+          Se a sua pergunta não estiver aqui, me mande no WhatsApp. Respondo mesmo que a resposta não me favoreça.
         </p>
       </div>
 
@@ -36,29 +36,30 @@ export const FAQSection: React.FC<FAQSectionProps> = ({ faqs }) => {
           return (
             <div
               key={idx}
-              className={`glass-panel rounded-2xl border transition-all duration-200 overflow-hidden ${
-                isOpen ? 'border-primary bg-surface-container-low/90 shadow-lg shadow-primary/10' : 'border-white/10 hover:border-white/20'
+              className={`bg-surface-container rounded-2xl border transition-all duration-200 overflow-hidden ${
+                isOpen ? 'border-primary shadow-lg shadow-primary/10' : 'border-outline-variant hover:border-outline'
               }`}
             >
               <button
                 onClick={() => toggleFAQ(idx)}
+                aria-expanded={isOpen}
                 className="w-full p-6 text-left flex justify-between items-center gap-4 focus:outline-none"
               >
-                <span className="font-bold text-base md:text-lg text-on-surface leading-snug">
+                <span className="font-bold text-lg text-on-surface leading-snug">
                   {faq.question}
                 </span>
-                <div className={`w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 bg-primary text-on-primary' : ''}`}>
-                  <ChevronDown className="w-4 h-4" />
+                <div className={`w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center text-primary shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 bg-primary text-on-primary' : ''}`}>
+                  <ChevronDown className="w-5 h-5" />
                 </div>
               </button>
 
               {isOpen && (
-                <div className="px-6 pb-6 pt-2 text-xs sm:text-sm text-on-surface-variant leading-relaxed border-t border-white/5 space-y-3">
+                <div className="px-6 pb-6 pt-4 text-base text-on-surface-variant leading-relaxed border-t border-outline-variant space-y-3">
                   <p>{faq.answer}</p>
                   {idx === 1 && (
-                    <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-500/20 text-xs font-semibold">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                      <span>Garantia de Propriedade Total do Cliente</span>
+                    <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-300 px-3.5 py-2 rounded-lg border border-emerald-500/25 text-base font-semibold">
+                      <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                      <span>Você continua dono de tudo</span>
                     </div>
                   )}
                 </div>

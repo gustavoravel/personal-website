@@ -1,12 +1,26 @@
 export interface Plan {
   id: string;
   name: string;
-  price: number;
-  period: string;
+  /** Valor da implantação, cobrado uma única vez. */
+  setupPrice: number;
+  /** Valor do acompanhamento mensal. 0 = sem mensalidade. */
+  monthlyPrice: number;
   description: string;
   isPopular?: boolean;
   features: string[];
+  /** O que a mensalidade cobre todo mês (vazio se não houver mensalidade). */
+  monthlyCovers: string[];
   ctaText: string;
+  whatsappMessage: string;
+}
+
+/** Oferta de entrada barata: serviço avulso, sem mensalidade. */
+export interface EntryOffer {
+  name: string;
+  price: number;
+  deliveryTime: string;
+  description: string;
+  includes: string[];
   whatsappMessage: string;
 }
 
@@ -76,12 +90,19 @@ export interface Lead {
 export interface SiteSettings {
   whatsappNumber: string;
   whatsappWelcomeMessage: string;
+  contactEmail: string;
+  /** Cidade/região atendida — usada no rodapé e no SEO local. */
+  city: string;
+  serviceArea: string;
   pixKey: string;
   pixKeyType: 'CPF' | 'CNPJ' | 'E-mail' | 'Telefone' | 'Aleatória';
   pixReceiverName: string;
+  /** Deixe vazio enquanto não houver CNPJ real: nada é exibido no site. */
   meiCnpj: string;
   meiStatus: string;
   meiRazaoSocial: string;
+  /** Prazo mínimo de contrato em meses. 0 = sem prazo mínimo. */
+  minimumContractMonths: number;
   heroHeadline: string;
   heroSubheadline: string;
 }

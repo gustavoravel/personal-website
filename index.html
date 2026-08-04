@@ -4,17 +4,104 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gustavo Ravel | Tecnologia Sem Complicação - Tech Concierge</title>
-    <meta name="description" content="Engenharia de presença digital, automação e conciergerie tecnológica para autônomos, executivos e pequenas empresas. De 0 a WhatsApp Business + Agenda em 3 dias." />
-    
-    <!-- Google Fonts & Material Symbols -->
+
+    <!-- Título e descrição em linguagem de cliente, sem "Tech Concierge"
+         nem "conciergerie" (o público leigo não reconhece os termos).
+         TODO: incluir a cidade/região no título e na descrição — busca local
+         é o canal mais provável para este serviço. -->
+    <title>Tecnologia Sem Complicação | WhatsApp e agenda online configurados em 3 dias</title>
+    <meta
+      name="description"
+      content="Configuro seu WhatsApp comercial, sua agenda online e seus lembretes automáticos para você parar de perder cliente. Pronto em 3 dias úteis, tudo no seu nome. Diagnóstico gratuito de 1 minuto."
+    />
+    <link rel="canonical" href="https://gustavoravel.com.br/" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Gustavo Ravel" />
+    <meta name="theme-color" content="#131313" />
+
+    <!-- Prévia ao colar o link no WhatsApp, onde o cliente vive.
+         Requer o arquivo /og-image.png (1200x630). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Gustavo Ravel · Tecnologia Sem Complicação" />
+    <meta property="og:title" content="Sua tecnologia funcionando — sem você precisar entender de tecnologia" />
+    <meta
+      property="og:description"
+      content="WhatsApp comercial, agenda online e lembretes automáticos configurados em 3 dias úteis. Tudo no seu nome. Se não funcionar como combinado, eu refaço."
+    />
+    <meta property="og:url" content="https://gustavoravel.com.br/" />
+    <meta property="og:image" content="https://gustavoravel.com.br/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Tecnologia Sem Complicação — WhatsApp e agenda configurados em 3 dias" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Sua tecnologia funcionando — sem você precisar entender de tecnologia" />
+    <meta
+      name="twitter:description"
+      content="WhatsApp comercial, agenda online e lembretes automáticos configurados em 3 dias úteis, tudo no seu nome."
+    />
+    <meta name="twitter:image" content="https://gustavoravel.com.br/og-image.png" />
+
+    <!-- Fontes: preconnect + swap para não travar o primeiro render no 4G -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Busca local: preencher streetAddress/areaServed/telephone com os
+         dados reais assim que existirem. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "Gustavo Ravel — Tecnologia Sem Complicação",
+        "description": "Configuração de WhatsApp comercial, agenda online e lembretes automáticos para pequenos negócios e autônomos. Entrega em 3 dias úteis.",
+        "url": "https://gustavoravel.com.br/",
+        "image": "https://gustavoravel.com.br/og-image.png",
+        "priceRange": "R$$",
+        "founder": {
+          "@type": "Person",
+          "name": "Gustavo Ravel"
+        },
+        "areaServed": {
+          "@type": "Country",
+          "name": "Brasil"
+        },
+        "knowsLanguage": "pt-BR",
+        "makesOffer": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Configuração de WhatsApp Business",
+              "description": "Perfil comercial, catálogo de serviços, mensagens automáticas e respostas rápidas."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Agendamento online com lembretes automáticos",
+              "description": "Link onde o cliente escolhe o horário livre na sua agenda, com lembrete automático antes do compromisso."
+            }
+          }
+        ]
+      }
+    </script>
   </head>
-  <body class="bg-background text-on-background font-sans antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen">
+  <body class="bg-background text-on-background font-sans antialiased min-h-screen">
     <div id="root"></div>
+    <noscript>
+      <div style="padding: 24px; font-family: system-ui, sans-serif; color: #e5e2e1; background: #131313;">
+        <h1>Tecnologia Sem Complicação — Gustavo Ravel</h1>
+        <p>
+          Configuro seu WhatsApp comercial, sua agenda online e seus lembretes automáticos para você parar de
+          perder cliente. Entrega em 3 dias úteis, com todas as contas criadas no seu nome. Se não funcionar
+          como combinado, eu refaço.
+        </p>
+        <p>Para usar esta página, ative o JavaScript no seu navegador.</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

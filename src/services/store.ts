@@ -1,13 +1,16 @@
-import { Plan, CaseStudy, DiagnosticQuestion, BlogPost, FAQItem, Lead, SiteSettings } from '../types';
+import { Plan, EntryOffer, CaseStudy, DiagnosticQuestion, BlogPost, FAQItem, Lead, SiteSettings } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-// Updated plans using human benefit language & non-jargon plan names
+/**
+ * Preços separados em implantação (uma vez) + acompanhamento mensal opcional.
+ * O visitante leigo lia "R$ 999 por mês para sempre" e saía da página.
+ */
 export const INITIAL_PLANS: Plan[] = [
   {
     id: 'plan-essencial',
     name: 'Essencial',
-    price: 499,
-    period: '/mês',
+    setupPrice: 499,
+    monthlyPrice: 99,
     description: 'Sua página profissional no ar + WhatsApp comercial organizado para passar confiança imediata.',
     isPopular: false,
     features: [
@@ -15,17 +18,22 @@ export const INITIAL_PLANS: Plan[] = [
       'Perfil comercial do WhatsApp configurado com catálogo e mensagem de saudação',
       'Cartão digital com seus links principais',
       'Seu negócio encontrável no Google quando procurarem pelo seu serviço',
-      'Suporte e ajustes direto comigo no WhatsApp'
+      'Tudo criado no seu nome, com os seus acessos'
     ],
-    ctaText: 'Escolher Plano Essencial',
+    monthlyCovers: [
+      'Hospedagem da sua página paga por mim',
+      'Alterações de texto, preço e serviço quando você pedir',
+      'Conserto sem custo se alguma coisa parar de funcionar'
+    ],
+    ctaText: 'Quero o Essencial',
     whatsappMessage: 'Olá Gustavo! Quero contratar o plano Essencial para organizar meu WhatsApp e minha página.'
   },
   {
     id: 'plan-completo',
     name: 'Completo',
-    price: 999,
-    period: '/mês',
-    description: 'Seu cliente agenda sozinho por um link 24h por dia e recebe lembretes automáticos antes da reunião.',
+    setupPrice: 999,
+    monthlyPrice: 149,
+    description: 'Seu cliente agenda sozinho por um link 24h por dia e recebe lembretes automáticos antes do horário.',
     isPopular: true,
     features: [
       'Tudo do plano Essencial',
@@ -33,29 +41,57 @@ export const INITIAL_PLANS: Plan[] = [
       'Lembrete automático enviado por WhatsApp antes do horário para reduzir faltas',
       'Formulário simples onde o cliente já te manda todas as informações necessárias',
       'Uma tela só onde você vê em que pé está cada atendimento',
+      'Tudo criado no seu nome, com os seus acessos'
+    ],
+    monthlyCovers: [
+      'Tudo do acompanhamento Essencial',
+      'Acompanho se os lembretes estão saindo e conserto se falhar',
       'Resposta em até 4 horas úteis, direto comigo no WhatsApp'
     ],
-    ctaText: 'Escolher Plano Completo (Mais Recomendado)',
+    ctaText: 'Quero o Completo',
     whatsappMessage: 'Olá Gustavo! Vi o plano Completo e quero meu agendamento automático rodando em 3 dias úteis!'
   },
   {
     id: 'plan-sob-medida',
     name: 'Sob Medida',
-    price: 2499,
-    period: '/mês',
-    description: 'Tarefas repetitivas acontecendo sozinhas (orçamentos, cobranças e relatórios automáticos).',
+    setupPrice: 2499,
+    monthlyPrice: 249,
+    description: 'Tarefas repetitivas acontecendo sozinhas: orçamentos, cobranças e relatórios sem você digitar nada.',
     isPopular: false,
     features: [
       'Tudo do plano Completo',
-      'Sistema web personalizado para o seu modelo exato de negócio',
+      'Sistema feito para o seu jeito exato de trabalhar',
       'Envio automático de orçamentos e lembretes de cobrança',
-      'Integração direta com meios de pagamento (Pix e cartão)',
-      'Acompanhamento semanal e ajustes contínuos de processos'
+      'Recebimento por Pix e cartão ligado direto no seu atendimento',
+      'Tudo criado no seu nome, com os seus acessos'
     ],
-    ctaText: 'Falar com Gustavo (Sob Medida)',
+    monthlyCovers: [
+      'Tudo do acompanhamento Completo',
+      'Ajustes contínuos conforme seu negócio muda',
+      'Conversa de acompanhamento uma vez por mês'
+    ],
+    ctaText: 'Conversar sobre o Sob Medida',
     whatsappMessage: 'Olá Gustavo! Tenho um projeto sob medida e gostaria de fazer uma análise personalizada.'
   }
 ];
+
+/** Porta de entrada barata para quem não compra recorrência no primeiro contato. */
+export const INITIAL_ENTRY_OFFER: EntryOffer = {
+  name: 'Arrumo seu WhatsApp Business em 1 dia',
+  price: 249,
+  deliveryTime: '1 dia útil',
+  description:
+    'Serviço avulso, pagamento único, sem mensalidade e sem compromisso. É a forma mais barata de me testar antes de contratar qualquer plano.',
+  includes: [
+    'Perfil comercial configurado com seus horários, endereço e descrição',
+    'Catálogo com seus serviços e preços dentro do WhatsApp',
+    'Mensagem de saudação e de ausência automáticas',
+    'Até 10 respostas rápidas para as perguntas que você mais recebe',
+    'Explicação em vídeo curto de como mexer em tudo depois'
+  ],
+  whatsappMessage:
+    'Olá Gustavo! Quero o serviço avulso de arrumar meu WhatsApp Business em 1 dia (R$ 249).'
+};
 
 // Honest demonstration prototypes instead of fake success statistics
 export const INITIAL_CASE_STUDIES: CaseStudy[] = [
@@ -127,16 +163,20 @@ export const INITIAL_FAQS: FAQItem[] = [
     answer: 'Nunca! A configuração do WhatsApp Business e do sistema de agendamento é feita com acessos seguros de integração e autorização na tela do seu próprio celular. Suas conversas e dados pessoais continuam 100% privados e protegidos.'
   },
   {
+    question: 'Se eu cancelar o acompanhamento depois de 2 meses, o que continua funcionando?',
+    answer: 'Continua funcionando praticamente tudo: seu WhatsApp comercial, seu link de agendamento, sua agenda e seus lembretes ficam de pé, porque estão nas suas próprias contas. Você só perde o meu acompanhamento — ou seja, os ajustes e a manutenção passam a ser por conta sua. A única exceção é a hospedagem da página, que hoje é paga por mim dentro da mensalidade: se você cancelar, ou assume esse custo (hoje na faixa de R$ 15 a R$ 30 por mês) ou eu te entrego os arquivos para levar para onde quiser. Não existe prazo mínimo nem multa.'
+  },
+  {
     question: 'O que acontece se der algum problema após a entrega?',
-    answer: 'Eu não sumirei após a entrega. Você tem suporte direto comigo via WhatsApp por 30 dias inclusos para tirar qualquer dúvida ou solicitar ajustes. Se algo não funcionar como combinado, eu refaço sem nenhum custo adicional.'
+    answer: 'Eu não sumirei após a entrega. Você tem suporte direto comigo via WhatsApp por 30 dias inclusos para tirar qualquer dúvida ou solicitar ajustes, e o acompanhamento mensal (se você contratar) cobre isso de forma contínua. Se algo não funcionar como combinado, eu refaço sem nenhum custo adicional.'
   },
   {
     question: 'Em quanto tempo meu sistema fica pronto de verdade?',
-    answer: 'O prazo padrão é de 3 dias úteis após a nossa conversa inicial de alinhamento. Esse compromisso de entrega rápida é assumido por escrito.'
+    answer: 'O prazo padrão é de 3 dias úteis após a nossa conversa inicial de alinhamento, contados de quando você me passar as informações que eu preciso (seus serviços, preços e horários). Esse compromisso de entrega é assumido por escrito.'
   },
   {
     question: 'Preciso pagar ferramentas caras de terceiros além do seu serviço?',
-    answer: 'Não! Priorizo ferramentas gratuitas ou de baixíssimo custo (como Google Agenda, WhatsApp Business e planos gratuitos do Cal.com). Você não terá surpresas com mensalidades ocultas.'
+    answer: 'Não. Eu monto tudo em cima de ferramentas gratuitas ou de custo muito baixo: WhatsApp Business é gratuito, Google Agenda é gratuito e o agendamento online roda no plano gratuito. A hospedagem da sua página está inclusa na mensalidade enquanto você tiver acompanhamento comigo. Se em algum momento o seu caso exigir uma ferramenta paga, eu te aviso o valor antes de contratar — nunca aparece uma cobrança que você não aprovou.'
   },
   {
     question: 'E se eu não gostar do resultado final?',
@@ -197,39 +237,38 @@ export const INITIAL_DIAGNOSTIC_QUESTIONS: DiagnosticQuestion[] = [
   }
 ];
 
+/**
+ * ATENÇÃO: os campos abaixo que estão vazios são dados reais que só você tem.
+ * Enquanto estiverem vazios, o site simplesmente não exibe a informação —
+ * é melhor não mostrar nada do que mostrar um CNPJ ou telefone inventado.
+ * Preencha aqui ou pelo Painel Admin.
+ */
 export const INITIAL_SETTINGS: SiteSettings = {
-  whatsappNumber: '5511999999999',
+  whatsappNumber: '',
   whatsappWelcomeMessage: 'Olá Gustavo! Vi seu site e gostaria de fazer o diagnóstico gratuito do meu atendimento.',
-  pixKey: 'gustavo.ravel@tecnologiasemcomplicacao.com.br',
+  contactEmail: '',
+  city: '',
+  serviceArea: 'Atendimento remoto em todo o Brasil',
+  pixKey: '',
   pixKeyType: 'E-mail',
-  pixReceiverName: 'Gustavo Ravel - Tecnologia Sem Complicação',
-  meiCnpj: '48.912.345/0001-90',
-  meiStatus: 'MEI Ativo - Optante pelo Simples Nacional',
-  meiRazaoSocial: 'GUSTAVO RAVEL DA SILVA TECNOLOGIA MEI',
+  pixReceiverName: '',
+  meiCnpj: '',
+  meiStatus: '',
+  meiRazaoSocial: '',
+  minimumContractMonths: 0,
   heroHeadline: 'Sua tecnologia funcionando — sem você precisar entender de tecnologia',
   heroSubheadline: 'Eu configuro seu WhatsApp, sua agenda online e seus lembretes automáticos em 3 dias úteis. Tudo pronto para usar. Se não funcionar como combinado, eu refaço.'
 };
 
-export const INITIAL_LEADS: Lead[] = [
-  {
-    id: 'lead-1',
-    name: 'Carlos Eduardo',
-    email: 'carlos@exemplo.com.br',
-    whatsapp: '11988887777',
-    businessType: 'Consultoria Financeira',
-    source: 'diagnostic_checklist',
-    diagnosticScore: 50,
-    diagnosticDetails: 'Resultado do Diagnóstico: 50/150 - Necessita de estruturação de WhatsApp Business e Agendamento Automático.',
-    status: 'new',
-    createdAt: '2026-08-03T14:20:00Z'
-  }
-];
+export const INITIAL_LEADS: Lead[] = [];
 
+// v3: preços passaram a ser setupPrice + monthlyPrice, e settings ganhou
+// contactEmail/city/CNPJ opcionais. Dados v2 em cache têm outro formato.
 const STORAGE_KEYS = {
-  PLANS: 'gr_plans_v2',
-  POSTS: 'gr_posts_v2',
-  SETTINGS: 'gr_settings_v2',
-  LEADS: 'gr_leads_v2'
+  PLANS: 'gr_plans_v3',
+  POSTS: 'gr_posts_v3',
+  SETTINGS: 'gr_settings_v3',
+  LEADS: 'gr_leads_v3'
 };
 
 export class AppStore {

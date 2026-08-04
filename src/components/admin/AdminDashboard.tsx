@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
-import { Plan, BlogPost, Testimonial, Lead, SiteSettings } from '../../types';
+import { Plan, BlogPost, Lead, SiteSettings } from '../../types';
 import { AppStore } from '../../services/store';
-import { Lock, Save, Plus, Trash2, Edit, Check, X, DollarSign, FileText, MessageSquareQuote, Users, Settings, MessageCircle, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Lock, Save, Plus, Trash2, Edit, Check, X, DollarSign, FileText, Users, Settings, MessageCircle, ShieldCheck } from 'lucide-react';
 
 interface AdminDashboardProps {
   plans: Plan[];
   posts: BlogPost[];
-  testimonials: Testimonial[];
   leads: Lead[];
   settings: SiteSettings;
   onUpdatePlans: (plans: Plan[]) => void;
   onUpdatePosts: (posts: BlogPost[]) => void;
-  onUpdateTestimonials: (testimonials: Testimonial[]) => void;
   onUpdateSettings: (settings: SiteSettings) => void;
   onBackToHome: () => void;
 }
@@ -19,19 +17,17 @@ interface AdminDashboardProps {
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   plans,
   posts,
-  testimonials,
   leads,
   settings,
   onUpdatePlans,
   onUpdatePosts,
-  onUpdateTestimonials,
   onUpdateSettings,
   onBackToHome
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [passwordInput, setPasswordInput] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'plans' | 'blog' | 'testimonials' | 'leads' | 'settings'>('plans');
+  const [activeTab, setActiveTab] = useState<'plans' | 'blog' | 'leads' | 'settings'>('plans');
 
   // Plan editing state
   const [editingPlans, setEditingPlans] = useState<Plan[]>(plans);
@@ -41,10 +37,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [blogList, setBlogList] = useState<BlogPost[]>(posts);
   const [editingPost, setEditingPost] = useState<Partial<BlogPost> | null>(null);
 
-  // Testimonials editing state
-  const [testList, setTestList] = useState<Testimonial[]>(testimonials);
-  const [editingTestimonial, setEditingTestimonial] = useState<Partial<Testimonial> | null>(null);
-
   // Settings editing state
   const [siteSettingsForm, setSiteSettingsForm] = useState<SiteSettings>(settings);
   const [settingsSavedMsg, setSettingsSavedMsg] = useState<boolean>(false);
@@ -52,14 +44,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Leads list state
   const [leadsList, setLeadsList] = useState<Lead[]>(leads);
 
+  /**
+   * ATENÇÃO: esta senha fica no código que roda no navegador — qualquer pessoa
+   * consegue lê-la abrindo o código-fonte da página. Serve apenas para evitar
+   * abrir o painel por acidente; NÃO é proteção real.
+   * Antes de guardar dado de cliente aqui, trocar por autenticação de verdade
+   * (ex.: Supabase Auth, que já é dependência do projeto).
+   */
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Default admin pass is 'admin123' or 'gustavo'
-    if (passwordInput === 'admin123' || passwordInput === 'gustavo' || passwordInput === 'ravel') {
+    const expected = import.meta.env.VITE_ADMIN_PASSCODE || 'admin123';
+    if (passwordInput === expected) {
       setIsAuthenticated(true);
       setAuthError('');
     } else {
-      setAuthError('Senha incorreta. Tente "admin123" para gerenciar.');
+      setAuthError('Senha incorreta.');
     }
   };
 
@@ -71,9 +70,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setTimeout(() => setPlanSavedMsg(false), 2500);
   };
 
-  const handlePlanPriceChange = (id: string, newPrice: number) => {
+  const handlePlanPriceChange = (id: string, field: 'setupPrice' | 'monthlyPrice', newPrice: number) => {
     setEditingPlans((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, price: newPrice } : p))
+      prev.map((p) => (p.id === id ? { ...p, [field]: newPrice } : p))
     );
   };
 
@@ -110,39 +109,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setBlogList(updated);
     AppStore.savePosts(updated);
     onUpdatePosts(updated);
-  };
-
-  // Save Testimonial
-  const handleSaveTestimonial = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingTestimonial?.name || !editingTestimonial?.quote) return;
-
-    const newTest: Testimonial = {
-      id: editingTestimonial.id || 'test-' + Date.now(),
-      name: editingTestimonial.name,
-      role: editingTestimonial.role || 'Cliente',
-      company: editingTestimonial.company || '',
-      avatar: editingTestimonial.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-      quote: editingTestimonial.quote,
-      rating: editingTestimonial.rating || 5,
-      featured: editingTestimonial.featured ?? true
-    };
-
-    const updated = editingTestimonial.id
-      ? testList.map((t) => (t.id === newTest.id ? newTest : t))
-      : [newTest, ...testList];
-
-    setTestList(updated);
-    AppStore.saveTestimonials(updated);
-    onUpdateTestimonials(updated);
-    setEditingTestimonial(null);
-  };
-
-  const handleDeleteTestimonial = (id: string) => {
-    const updated = testList.filter((t) => t.id !== id);
-    setTestList(updated);
-    AppStore.saveTestimonials(updated);
-    onUpdateTestimonials(updated);
   };
 
   // Update Lead Status
@@ -182,7 +148,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </label>
               <input
                 type="password"
-                placeholder="Digite a senha (padrão: admin123)"
+                placeholder="Digite a senha de acesso"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface focus:border-primary focus:outline-none"
@@ -260,18 +226,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveTab('testimonials')}
-          className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all ${
-            activeTab === 'testimonials'
-              ? 'bg-primary text-on-primary shadow-md shadow-primary/20'
-              : 'glass-panel text-on-surface-variant hover:text-on-surface'
-          }`}
-        >
-          <MessageSquareQuote className="w-4 h-4" />
-          <span>Depoimentos ({testList.length})</span>
-        </button>
-
-        <button
           onClick={() => setActiveTab('leads')}
           className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all ${
             activeTab === 'leads'
@@ -330,12 +284,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Preço Atual (R$)</label>
+                  <label htmlFor={`setup-${plan.id}`} className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                    Implantação — uma vez (R$)
+                  </label>
                   <input
+                    id={`setup-${plan.id}`}
                     type="number"
-                    value={plan.price}
-                    onChange={(e) => handlePlanPriceChange(plan.id, Number(e.target.value))}
+                    min={0}
+                    value={plan.setupPrice}
+                    onChange={(e) => handlePlanPriceChange(plan.id, 'setupPrice', Number(e.target.value))}
                     className="w-full bg-surface-container-high p-3 rounded-lg border border-white/10 text-lg font-bold text-primary focus:outline-none focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor={`monthly-${plan.id}`} className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                    Acompanhamento mensal (R$ · 0 = sem mensalidade)
+                  </label>
+                  <input
+                    id={`monthly-${plan.id}`}
+                    type="number"
+                    min={0}
+                    value={plan.monthlyPrice}
+                    onChange={(e) => handlePlanPriceChange(plan.id, 'monthlyPrice', Number(e.target.value))}
+                    className="w-full bg-surface-container-high p-3 rounded-lg border border-white/10 text-lg font-bold text-on-surface focus:outline-none focus:border-primary"
                   />
                 </div>
 
@@ -472,104 +444,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* TAB 3: Testimonials Management */}
-      {activeTab === 'testimonials' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold text-on-surface">Gerenciamento de Depoimentos</h2>
-            <button
-              onClick={() =>
-                setEditingTestimonial({
-                  name: '',
-                  role: '',
-                  company: '',
-                  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-                  quote: '',
-                  rating: 5,
-                  featured: true
-                })
-              }
-              className="bg-primary text-on-primary font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Adicionar Depoimento</span>
-            </button>
-          </div>
-
-          {editingTestimonial && (
-            <form onSubmit={handleSaveTestimonial} className="glass-panel p-8 rounded-2xl border border-primary/40 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Nome do Cliente</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingTestimonial.name || ''}
-                    onChange={(e) => setEditingTestimonial({ ...editingTestimonial, name: e.target.value })}
-                    className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Cargo / Profissão</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingTestimonial.role || ''}
-                    onChange={(e) => setEditingTestimonial({ ...editingTestimonial, role: e.target.value })}
-                    className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Empresa / Clínica</label>
-                  <input
-                    type="text"
-                    value={editingTestimonial.company || ''}
-                    onChange={(e) => setEditingTestimonial({ ...editingTestimonial, company: e.target.value })}
-                    className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Depoimento / Aspas</label>
-                <textarea
-                  rows={3}
-                  required
-                  value={editingTestimonial.quote || ''}
-                  onChange={(e) => setEditingTestimonial({ ...editingTestimonial, quote: e.target.value })}
-                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button type="submit" className="bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-lg text-xs">
-                  Salvar Depoimento
-                </button>
-                <button type="button" onClick={() => setEditingTestimonial(null)} className="glass-panel text-on-surface-variant px-4 py-2.5 rounded-lg text-xs">
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {testList.map((t) => (
-              <div key={t.id} className="glass-panel p-4 rounded-xl border border-white/10 flex justify-between items-start gap-4">
-                <div>
-                  <div className="font-bold text-on-surface text-sm">{t.name} ({t.role})</div>
-                  <p className="text-xs text-on-surface-variant italic mt-1 font-serif">"{t.quote}"</p>
-                </div>
-                <button onClick={() => handleDeleteTestimonial(t.id)} className="text-rose-400 p-1 hover:bg-rose-500/20 rounded">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* TAB 4: Leads & Diagnostic Inquiries */}
       {activeTab === 'leads' && (
         <div className="glass-panel p-8 rounded-2xl border border-white/10 space-y-6">
@@ -647,15 +521,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
+          {/* Aviso do que ainda falta: campo vazio some do site em vez de
+              exibir dado inventado, então é fácil esquecer de preencher. */}
+          {(() => {
+            const missing = [
+              !siteSettingsForm.whatsappNumber && 'número do WhatsApp',
+              !siteSettingsForm.contactEmail && 'e-mail de contato',
+              !siteSettingsForm.city && 'cidade/região',
+              !siteSettingsForm.meiCnpj && 'CNPJ'
+            ].filter(Boolean);
+
+            return missing.length > 0 ? (
+              <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 p-4 rounded-lg text-sm">
+                <strong>Ainda falta preencher:</strong> {missing.join(', ')}. Enquanto estiver vazio, o site
+                simplesmente não mostra a informação (é melhor do que mostrar dado inventado). Sem o WhatsApp,
+                os botões levam ao formulário de contato.
+              </div>
+            ) : null;
+          })()}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="font-bold text-primary text-sm uppercase font-mono">Contato &amp; WhatsApp</h3>
+              <h3 className="font-bold text-primary text-sm uppercase">Contato &amp; Localização</h3>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Número do WhatsApp (com DDD e DDI)</label>
+                <label htmlFor="set-wa" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                  Número do WhatsApp (DDI + DDD, só números)
+                </label>
                 <input
+                  id="set-wa"
                   type="text"
-                  required
+                  placeholder="5511987654321"
                   value={siteSettingsForm.whatsappNumber}
                   onChange={(e) => setSiteSettingsForm({ ...siteSettingsForm, whatsappNumber: e.target.value })}
                   className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
@@ -663,39 +559,115 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Mensagem Padrão de Saudação</label>
+                <label htmlFor="set-msg" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                  Mensagem que já vem escrita no WhatsApp
+                </label>
                 <input
+                  id="set-msg"
                   type="text"
-                  required
                   value={siteSettingsForm.whatsappWelcomeMessage}
                   onChange={(e) => setSiteSettingsForm({ ...siteSettingsForm, whatsappWelcomeMessage: e.target.value })}
+                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="set-email" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                  E-mail de contato (usado também nos documentos legais)
+                </label>
+                <input
+                  id="set-email"
+                  type="email"
+                  placeholder="contato@seudominio.com.br"
+                  value={siteSettingsForm.contactEmail}
+                  onChange={(e) => setSiteSettingsForm({ ...siteSettingsForm, contactEmail: e.target.value })}
+                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="set-city" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                  Cidade / região atendida (importante para busca no Google)
+                </label>
+                <input
+                  id="set-city"
+                  type="text"
+                  placeholder="Ex: São Paulo - SP"
+                  value={siteSettingsForm.city}
+                  onChange={(e) => setSiteSettingsForm({ ...siteSettingsForm, city: e.target.value })}
                   className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
                 />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-bold text-primary text-sm uppercase font-mono">Dados Pix &amp; Formalização MEI</h3>
+              <h3 className="font-bold text-primary text-sm uppercase">Pagamento &amp; Empresa</h3>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Chave Pix</label>
+                <label htmlFor="set-pix" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                  Chave Pix (deixe vazio para não exibir)
+                </label>
                 <input
+                  id="set-pix"
                   type="text"
-                  required
                   value={siteSettingsForm.pixKey}
                   onChange={(e) => setSiteSettingsForm({ ...siteSettingsForm, pixKey: e.target.value })}
-                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface font-mono"
+                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">CNPJ MEI</label>
+                <label htmlFor="set-pixname" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                  Nome que aparece ao receber o Pix
+                </label>
                 <input
+                  id="set-pixname"
                   type="text"
-                  required
+                  value={siteSettingsForm.pixReceiverName}
+                  onChange={(e) => setSiteSettingsForm({ ...siteSettingsForm, pixReceiverName: e.target.value })}
+                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="set-cnpj" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                  CNPJ (deixe vazio até ter o real)
+                </label>
+                <input
+                  id="set-cnpj"
+                  type="text"
                   value={siteSettingsForm.meiCnpj}
                   onChange={(e) => setSiteSettingsForm({ ...siteSettingsForm, meiCnpj: e.target.value })}
-                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface font-mono"
+                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="set-razao" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                  Razão social
+                </label>
+                <input
+                  id="set-razao"
+                  type="text"
+                  value={siteSettingsForm.meiRazaoSocial}
+                  onChange={(e) => setSiteSettingsForm({ ...siteSettingsForm, meiRazaoSocial: e.target.value })}
+                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="set-min" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                  Prazo mínimo de contrato, em meses (0 = sem prazo mínimo)
+                </label>
+                <input
+                  id="set-min"
+                  type="number"
+                  min={0}
+                  value={siteSettingsForm.minimumContractMonths}
+                  onChange={(e) =>
+                    setSiteSettingsForm({ ...siteSettingsForm, minimumContractMonths: Number(e.target.value) })
+                  }
+                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
                 />
               </div>
             </div>

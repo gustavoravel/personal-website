@@ -1,56 +1,45 @@
 import React, { useState } from 'react';
 import { ShieldCheck, MessageCircle, Menu, X } from 'lucide-react';
 import { SiteSettings } from '../types';
+import { AppView } from '../App';
+import { openWhatsApp, hasWhatsApp } from '../lib/contact';
 
 interface NavbarProps {
-  currentView: 'home' | 'blog' | 'admin';
-  setCurrentView: (view: 'home' | 'blog' | 'admin') => void;
+  setCurrentView: (view: AppView) => void;
   settings: SiteSettings;
-  onOpenContact: () => void;
+  onStartDiagnostic: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({
-  currentView,
-  setCurrentView,
-  settings,
-  onOpenContact
-}) => {
+export const Navbar: React.FC<NavbarProps> = ({ setCurrentView, settings, onStartDiagnostic }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // "Blog Tech" saiu do menu: link que não leva a nada é sinal de site abandonado.
+  // Volta quando existir o primeiro post publicado.
   const navLinks = [
-    { label: 'Início', hash: '#hero' },
-    { label: 'Dores', hash: '#dores' },
-    { label: 'Como Funciona', hash: '#como-funciona' },
-    { label: 'Planos', hash: '#planos' },
+    { label: 'Como funciona', hash: '#como-funciona' },
+    { label: 'Preços', hash: '#planos' },
     { label: 'Demonstração', hash: '#cases' },
-    { label: 'Quem Sou Eu', hash: '#sobre' },
-    { label: 'Dúvidas (FAQ)', hash: '#faq' },
-    { label: 'Diagnóstico', hash: '#diagnostico' },
+    { label: 'Quem sou eu', hash: '#sobre' },
+    { label: 'Garantia', hash: '#garantia' },
+    { label: 'Dúvidas', hash: '#faq' }
   ];
 
   const handleNavClick = (hash: string) => {
     setCurrentView('home');
     setMobileMenuOpen(false);
     setTimeout(() => {
-      const el = document.querySelector(hash);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
+      document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
-  };
-
-  const openWhatsApp = () => {
-    const message = encodeURIComponent(settings.whatsappWelcomeMessage);
-    window.open(`https://wa.me/${settings.whatsappNumber}?text=${message}`, '_blank');
   };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass-header">
-      <div className="max-w-[1200px] mx-auto px-gutter h-20 flex items-center justify-between">
-        {/* Brand Logo */}
+      <div className="max-w-[1200px] mx-auto px-gutter h-20 flex items-center justify-between gap-4">
+        {/* Marca principal em linguagem que o cliente entende.
+            "Tech Concierge" saiu: o público leigo não reconhece o termo. */}
         <button
           onClick={() => handleNavClick('#hero')}
-          className="flex items-center gap-3 text-left group"
+          className="flex items-center gap-3 text-left group shrink-0"
         >
           <div className="w-10 h-10 rounded-lg bg-primary-container/20 border border-primary/40 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
             <ShieldCheck className="w-6 h-6" />
@@ -59,77 +48,75 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="block font-bold text-lg leading-none text-on-surface tracking-tight">
               Gustavo Ravel
             </span>
-            <span className="text-xs text-primary font-semibold tracking-wider uppercase">
+            <span className="text-sm text-primary font-semibold">
               Tecnologia Sem Complicação
             </span>
           </div>
         </button>
 
-        {/* Desktop Nav Links */}
-        <nav className="hidden xl:flex items-center gap-5">
+        <nav className="hidden xl:flex items-center gap-6">
           {navLinks.map((link, idx) => (
             <button
               key={idx}
               onClick={() => handleNavClick(link.hash)}
-              className="text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors py-1"
+              className="text-base font-semibold text-on-surface-variant hover:text-primary transition-colors py-1"
             >
               {link.label}
             </button>
           ))}
         </nav>
 
-        {/* Primary Action Buttons */}
-        <div className="hidden sm:flex items-center gap-3">
+        {/* Um único CTA primário em toda a página. WhatsApp fica discreto. */}
+        <div className="hidden sm:flex items-center gap-4 shrink-0">
           <button
-            onClick={openWhatsApp}
-            className="inline-flex items-center gap-2 bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 px-4 py-2 rounded-lg font-bold text-xs hover:bg-emerald-600 hover:text-white transition-all duration-200"
+            onClick={() => openWhatsApp(settings, settings.whatsappWelcomeMessage)}
+            className="inline-flex items-center gap-2 text-on-surface-variant hover:text-emerald-400 font-semibold text-base transition-colors"
           >
-            <MessageCircle className="w-4 h-4" />
-            <span>Falar no WhatsApp</span>
+            <MessageCircle className="w-5 h-5" />
+            <span>{hasWhatsApp(settings) ? 'WhatsApp' : 'Contato'}</span>
           </button>
 
           <button
-            onClick={onOpenContact}
-            className="bg-primary text-on-primary px-5 py-2 rounded-lg font-bold text-xs hover:scale-105 transition-transform duration-200 shadow-md shadow-primary/20"
+            onClick={onStartDiagnostic}
+            className="bg-primary text-on-primary px-5 py-3 rounded-xl font-bold text-base hover:scale-105 transition-transform duration-200 shadow-md shadow-primary/20"
           >
-            Diagnóstico Gratuito
+            Diagnóstico gratuito
           </button>
         </div>
 
-        {/* Mobile Hamburger */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="xl:hidden p-2 text-on-surface hover:text-primary"
-          aria-label="Abrir menu de navegação"
+          aria-label={mobileMenuOpen ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
+          aria-expanded={mobileMenuOpen}
         >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {mobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
         </button>
       </div>
 
-      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="xl:hidden bg-surface-container-low/95 border-b border-white/10 px-gutter py-6 space-y-4">
-          <div className="flex flex-col gap-2">
+        <div className="xl:hidden bg-surface-container-low border-b border-outline-variant px-gutter py-6 space-y-4">
+          <div className="flex flex-col">
             {navLinks.map((link, idx) => (
               <button
                 key={idx}
                 onClick={() => handleNavClick(link.hash)}
-                className="text-left py-2 text-sm font-semibold text-on-surface hover:text-primary border-b border-white/5"
+                className="text-left py-3.5 text-lg font-semibold text-on-surface hover:text-primary border-b border-outline-variant"
               >
                 {link.label}
               </button>
             ))}
           </div>
 
-          <div className="pt-4 flex flex-col gap-3">
-            <button
-              onClick={openWhatsApp}
-              className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-3 rounded-lg font-bold text-sm"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Chamar Gustavo no WhatsApp</span>
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              onStartDiagnostic();
+            }}
+            className="w-full bg-primary text-on-primary py-3.5 rounded-xl font-bold text-base"
+          >
+            Diagnóstico gratuito (1 minuto)
+          </button>
         </div>
       )}
     </header>

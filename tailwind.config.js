@@ -16,12 +16,14 @@ export default {
         "surface-container": "#201f1f",
         "surface-container-high": "#2a2a2a",
         "surface-container-highest": "#353534",
-        "on-surface": "#e5e2e1",
-        "on-surface-variant": "#c1c7d2",
+        "on-surface": "#f0eeed",
+        // Contraste elevado: o cinza anterior (#c1c7d2) ficava fraco sobre
+        // painel translúcido e não passava em AA no corpo de texto.
+        "on-surface-variant": "#d4d9e2",
         "inverse-surface": "#e5e2e1",
         "inverse-on-surface": "#313030",
-        "outline": "#8b919b",
-        "outline-variant": "#414750",
+        "outline": "#9aa1ab",
+        "outline-variant": "#474d56",
         "surface-tint": "#9dcaff",
         "primary": "#9dcaff",
         "on-primary": "#003257",
