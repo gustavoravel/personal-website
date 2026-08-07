@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
 import { Plan, BlogPost, Lead, SiteSettings } from '../../types';
 import { AppStore } from '../../services/store';
-import { Lock, Save, Plus, Trash2, Edit, Check, X, DollarSign, FileText, Users, Settings, MessageCircle, ShieldCheck } from 'lucide-react';
+import {
+  getCurrentUser,
+  isSupabaseConfigured,
+  onAuthChange,
+  signInWithEmail,
+  signOut,
+} from '../../lib/auth';
+import { Lock, Save, Plus, Trash2, Edit, Check, X, DollarSign, FileText, Users, Settings, MessageCircle, ShieldCheck, LogOut } from 'lucide-react';
 
 interface AdminDashboardProps {
   plans: Plan[];
@@ -24,9 +32,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateSettings,
   onBackToHome
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [passwordInput, setPasswordInput] = useState<string>('');
-  const [authError, setAuthError] = useState<string>('');
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [loginPending, setLoginPending] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [authError, setAuthError] = useState('');
   const [activeTab, setActiveTab] = useState<'plans' | 'blog' | 'leads' | 'settings'>('plans');
 
   // Plan editing state
@@ -44,22 +55,63 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Leads list state
   const [leadsList, setLeadsList] = useState<Lead[]>(leads);
 
-  /**
-   * ATENÇÃO: esta senha fica no código que roda no navegador — qualquer pessoa
-   * consegue lê-la abrindo o código-fonte da página. Serve apenas para evitar
-   * abrir o painel por acidente; NÃO é proteção real.
-   * Antes de guardar dado de cliente aqui, trocar por autenticação de verdade
-   * (ex.: Supabase Auth, que já é dependência do projeto).
-   */
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    const bootstrap = async () => {
+      if (!isSupabaseConfigured) {
+        if (!cancelled) {
+          setUser(null);
+          setAuthLoading(false);
+        }
+        return;
+      }
+
+      const current = await getCurrentUser();
+      if (!cancelled) {
+        setUser(current);
+        setAuthLoading(false);
+      }
+    };
+
+    bootstrap();
+
+    const unsubscribe = onAuthChange((session) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const expected = import.meta.env.VITE_ADMIN_PASSCODE || 'admin123';
-    if (passwordInput === expected) {
-      setIsAuthenticated(true);
-      setAuthError('');
-    } else {
-      setAuthError('Senha incorreta.');
+    setAuthError('');
+    setLoginPending(true);
+
+    const { user: signedIn, error } = await signInWithEmail(
+      emailInput.trim(),
+      passwordInput
+    );
+
+    setLoginPending(false);
+
+    if (error || !signedIn) {
+      setAuthError(error || 'Não foi possível entrar.');
+      return;
     }
+
+    setUser(signedIn);
+    setPasswordInput('');
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    setUser(null);
+    onBackToHome();
   };
 
   // Save Plans
@@ -127,7 +179,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setTimeout(() => setSettingsSavedMsg(false), 2500);
   };
 
-  if (!isAuthenticated) {
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-gutter pt-20">
+        <p className="text-sm text-on-surface-variant">Verificando sessão…</p>
+      </div>
+    );
+  }
+
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center px-gutter pt-20">
         <div className="glass-panel p-8 rounded-3xl border border-white/10 max-w-md w-full space-y-6">
@@ -136,44 +196,81 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <Lock className="w-6 h-6" />
             </div>
             <h1 className="text-2xl font-bold text-on-surface">Painel Administrativo</h1>
-            <p className="text-xs text-on-surface-variant">
-              Área de acesso restrito para gerenciamento do site Gustavo Ravel.
+            <p className="text-sm text-on-surface-variant">
+              Entre com um usuário cadastrado no Supabase Authentication.
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-on-surface-variant uppercase mb-2">
-                Senha de Acesso
-              </label>
-              <input
-                type="password"
-                placeholder="Digite a senha de acesso"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface focus:border-primary focus:outline-none"
-              />
-            </div>
-
-            {authError && <div className="text-xs text-rose-400 font-semibold">{authError}</div>}
-
-            <div className="flex gap-3">
+          {!isSupabaseConfigured ? (
+            <div className="space-y-4">
+              <p className="text-sm text-rose-400 font-semibold">
+                Supabase não configurado. Defina <code className="text-xs">VITE_SUPABASE_URL</code> e{' '}
+                <code className="text-xs">VITE_SUPABASE_ANON_KEY</code> no arquivo <code className="text-xs">.env</code> e
+                reinicie o servidor de desenvolvimento.
+              </p>
               <button
                 type="button"
                 onClick={onBackToHome}
-                className="w-1/2 glass-panel py-3 rounded-lg font-bold text-xs text-on-surface-variant hover:text-on-surface"
+                className="w-full glass-panel py-3 rounded-lg font-bold text-xs text-on-surface-variant hover:text-on-surface"
               >
                 Voltar
               </button>
-
-              <button
-                type="submit"
-                className="w-1/2 bg-primary text-on-primary py-3 rounded-lg font-bold text-xs hover:scale-105 transition-transform"
-              >
-                Entrar no Painel
-              </button>
             </div>
-          </form>
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label htmlFor="admin-email" className="block text-xs font-bold text-on-surface-variant uppercase mb-2">
+                  E-mail
+                </label>
+                <input
+                  id="admin-email"
+                  type="email"
+                  autoComplete="username"
+                  required
+                  placeholder="seu@email.com"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface focus:border-primary focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="admin-password" className="block text-xs font-bold text-on-surface-variant uppercase mb-2">
+                  Senha
+                </label>
+                <input
+                  id="admin-password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  placeholder="Senha da conta"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface focus:border-primary focus:outline-none"
+                />
+              </div>
+
+              {authError && <div className="text-sm text-rose-400 font-semibold">{authError}</div>}
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={onBackToHome}
+                  className="w-1/2 glass-panel py-3 rounded-lg font-bold text-xs text-on-surface-variant hover:text-on-surface"
+                >
+                  Voltar
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loginPending}
+                  className="w-1/2 bg-primary text-on-primary py-3 rounded-lg font-bold text-xs hover:scale-105 transition-transform disabled:opacity-60 disabled:hover:scale-100"
+                >
+                  {loginPending ? 'Entrando…' : 'Entrar no Painel'}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     );
@@ -189,14 +286,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <span>Modo de Gerenciamento Ativo</span>
           </div>
           <h1 className="text-2xl font-bold text-on-surface">Painel de Configurações Gustavo Ravel</h1>
+          {user.email && (
+            <p className="text-sm text-on-surface-variant mt-1">Logado como {user.email}</p>
+          )}
         </div>
 
-        <button
-          onClick={onBackToHome}
-          className="glass-panel text-on-surface hover:text-primary px-4 py-2 rounded-lg font-bold text-xs border border-white/10"
-        >
-          Sair / Voltar ao Site
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onBackToHome}
+            className="glass-panel text-on-surface hover:text-primary px-4 py-2 rounded-lg font-bold text-xs border border-white/10"
+          >
+            Voltar ao Site
+          </button>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 px-4 py-2 rounded-lg font-bold text-xs border border-rose-500/30"
+          >
+            <LogOut className="w-4 h-4" />
+            Sair
+          </button>
+        </div>
       </div>
 
       {/* Admin Navigation Tabs */}
