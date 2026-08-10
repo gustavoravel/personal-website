@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SiteSettings } from '../types';
 import { AppStore } from '../services/store';
 import { openWhatsApp, hasWhatsApp, mailtoUrl, postLead, isLeadEndpointConfigured } from '../lib/contact';
+import { isSupabaseConfigured } from '../lib/supabase';
 import { Mail, MessageCircle, Send, CheckCircle2, User, Phone, Briefcase, Lock, AlertTriangle } from 'lucide-react';
 
 interface ContactSectionProps {
@@ -25,17 +26,17 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
 
     const lead = { name, email, whatsapp, businessType, source: 'contact_form' as const, message };
 
-    // Guarda local sempre (não perde o contato se a rede falhar)
-    AppStore.addLead(lead);
+    // Guarda local sempre (não perde o contato se a rede falhar) e tenta o
+    // Supabase, quando configurado.
+    const { savedRemotely } = await AppStore.addLead(lead);
 
-    if (!isLeadEndpointConfigured) {
-      // Sem destino configurado nada chega até Gustavo — não finja sucesso.
-      setStatus('error');
-      return;
-    }
+    // Só é sucesso se o contato saiu do navegador por algum caminho:
+    // webhook (n8n/Formspree) ou Supabase. Caso contrário, não finja.
+    const webhookOk = isLeadEndpointConfigured
+      ? await postLead({ ...lead, origem: 'Formulário de contato do site' })
+      : false;
 
-    const ok = await postLead({ ...lead, origem: 'Formulário de contato do site' });
-    setStatus(ok ? 'sent' : 'error');
+    setStatus(webhookOk || savedRemotely ? 'sent' : 'error');
   };
 
   const emailHref = mailtoUrl(settings, 'Contato pelo site');
@@ -110,7 +111,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
               <form onSubmit={handleSubmit} className="space-y-5 bg-surface-container p-6 md:p-8 rounded-2xl border border-outline-variant">
                 {/* Visível só em desenvolvimento: o visitante nunca vê isto.
                     Sem VITE_LEAD_ENDPOINT nenhum lead chega até você. */}
-                {import.meta.env.DEV && !isLeadEndpointConfigured && (
+                {import.meta.env.DEV && !isLeadEndpointConfigured && !isSupabaseConfigured && (
                   <div className="bg-rose-500/15 border border-rose-500/40 text-rose-100 p-4 rounded-xl text-base">
                     <strong>Aviso de configuração (só aparece em desenvolvimento):</strong> defina{' '}
                     <code>VITE_LEAD_ENDPOINT</code> no arquivo <code>.env</code> antes de publicar. Enquanto isso,

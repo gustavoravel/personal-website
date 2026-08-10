@@ -117,13 +117,12 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
       message: 'Pediu análise do diagnóstico gratuito pelo site.'
     };
 
-    AppStore.addLead(lead);
+    const { savedRemotely } = await AppStore.addLead(lead);
+    const webhookOk = isLeadEndpointConfigured ? await postLead(lead) : false;
 
-    if (isLeadEndpointConfigured) {
-      const ok = await postLead(lead);
-      if (!ok) setSendState('error');
-      else setSendState('idle');
-    }
+    // O WhatsApp abre de qualquer jeito logo abaixo — o aviso serve só para
+    // o visitante saber que precisa mesmo enviar a mensagem por lá.
+    setSendState(webhookOk || savedRemotely ? 'idle' : 'error');
 
     openWhatsApp(
       settings,

@@ -244,7 +244,8 @@ export const INITIAL_DIAGNOSTIC_QUESTIONS: DiagnosticQuestion[] = [
  * Preencha aqui ou pelo Painel Admin.
  */
 export const INITIAL_SETTINGS: SiteSettings = {
-  whatsappNumber: '',
+  // DDI 55 + DDD 11 + número. Só dígitos: é assim que o wa.me espera.
+  whatsappNumber: '5511921600939',
   whatsappWelcomeMessage: 'Olá Gustavo! Vi seu site e gostaria de fazer o diagnóstico gratuito do meu atendimento.',
   contactEmail: '',
   city: '',
@@ -324,22 +325,59 @@ export class AppStore {
     return cached ? JSON.parse(cached) : INITIAL_LEADS;
   }
 
-  static addLead(lead: Omit<Lead, 'id' | 'createdAt' | 'status'>): Lead {
+  /**
+   * Guarda o lead localmente e, se o Supabase estiver configurado, também lá.
+   *
+   * Devolve `savedRemotely` para o formulário saber se o contato realmente
+   * saiu do navegador. Sem isso o site anunciaria "enviado com sucesso" para
+   * um lead que ficou preso no celular do visitante — e você nunca saberia.
+   */
+  static async addLead(
+    lead: Omit<Lead, 'id' | 'createdAt' | 'status'>
+  ): Promise<{ lead: Lead; savedRemotely: boolean }> {
     const newLead: Lead = {
       ...lead,
       id: 'lead-' + Date.now(),
       status: 'new',
       createdAt: new Date().toISOString()
     };
-    const leads = this.getLeads();
-    const updated = [newLead, ...leads];
+
+    const updated = [newLead, ...this.getLeads()];
     localStorage.setItem(STORAGE_KEYS.LEADS, JSON.stringify(updated));
 
     const client = supabase;
-    if (isSupabaseConfigured && client) {
-      client.from('leads').insert(newLead);
+    if (!isSupabaseConfigured || !client) {
+      return { lead: newLead, savedRemotely: false };
     }
-    return newLead;
+
+    // A tabela no Supabase usa snake_case (convenção do Postgres) e o app
+    // usa camelCase — sem esta tradução o insert falha com PGRST204.
+    // `id` e `created_at` não têm valor automático na tabela, então quem
+    // gera é o app.
+    const row = {
+      id: newLead.id,
+      created_at: newLead.createdAt,
+      name: newLead.name,
+      email: newLead.email,
+      whatsapp: newLead.whatsapp,
+      business_type: newLead.businessType,
+      source: newLead.source,
+      message: newLead.message ?? null,
+      status: newLead.status,
+      diagnostic_score: newLead.diagnosticScore ?? null,
+      diagnostic_details: newLead.diagnosticDetails ?? null
+    };
+
+    try {
+      const { error } = await client.from('leads').insert(row);
+      if (error && import.meta.env.DEV) {
+        console.error('[Supabase] insert em "leads" falhou:', error.code, error.message, error.details);
+      }
+      return { lead: newLead, savedRemotely: !error };
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('[Supabase] exceção no insert:', err);
+      return { lead: newLead, savedRemotely: false };
+    }
   }
 
   static updateLeadStatus(id: string, status: Lead['status']): void {
