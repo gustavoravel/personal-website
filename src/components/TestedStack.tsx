@@ -41,17 +41,31 @@ export const TestedStack: React.FC = () => {
 
   return (
     <section id="ferramentas" className="py-16 px-gutter max-w-[1200px] mx-auto space-y-10">
-      <div className="text-center space-y-3 max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary bg-primary/10 px-3.5 py-1.5 rounded-full border border-primary/25">
-          <Wrench className="w-4 h-4" />
-          <span>Testado na Minha Própria Operação</span>
+      {/* A foto é a prova da frase: esta é a operação onde tudo roda antes
+          de chegar no cliente. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary bg-primary/10 px-3.5 py-1.5 rounded-full border border-primary/25">
+            <Wrench className="w-4 h-4" />
+            <span>Testado na Minha Própria Operação</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
+            Nada é testado <span className="text-primary">na frente do seu cliente</span>
+          </h2>
+          <p className="text-on-surface-variant text-lg leading-relaxed">
+            Eu só monto para você o que já uso no meu próprio atendimento todos os dias. Antes de contratar,
+            você pode me pedir para mostrar cada uma dessas coisas funcionando — ao vivo, na minha tela.
+          </p>
         </div>
-        <h2 className="text-3xl md:text-4xl font-extrabold text-on-surface">
-          Nada é testado <span className="text-primary">na frente do seu cliente</span>
-        </h2>
-        <p className="text-on-surface-variant text-lg leading-relaxed">
-          Eu só monto para você o que já uso no meu próprio atendimento todos os dias. Você pode conferir funcionando comigo antes de contratar.
-        </p>
+
+        <img
+          src="/gustavo-trabalhando.jpg"
+          alt="Gustavo Ravel trabalhando em sua mesa, configurando um sistema no notebook"
+          width={1000}
+          height={1000}
+          loading="lazy"
+          className="w-full max-w-md mx-auto rounded-2xl border border-outline-variant object-cover"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
