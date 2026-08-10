@@ -122,10 +122,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setTimeout(() => setPlanSavedMsg(false), 2500);
   };
 
-  const handlePlanPriceChange = (id: string, field: 'setupPrice' | 'monthlyPrice', newPrice: number) => {
-    setEditingPlans((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, [field]: newPrice } : p))
-    );
+  const handlePlanPriceChange = (id: string, newPrice: number) => {
+    setEditingPlans((prev) => prev.map((p) => (p.id === id ? { ...p, price: newPrice } : p)));
   };
 
   // Save Post
@@ -395,31 +393,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 <div>
-                  <label htmlFor={`setup-${plan.id}`} className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
-                    Implantação — uma vez (R$)
+                  <label htmlFor={`price-${plan.id}`} className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                    Preço da configuração — pagamento único (R$)
                   </label>
                   <input
-                    id={`setup-${plan.id}`}
+                    id={`price-${plan.id}`}
                     type="number"
                     min={0}
-                    value={plan.setupPrice}
-                    onChange={(e) => handlePlanPriceChange(plan.id, 'setupPrice', Number(e.target.value))}
+                    value={plan.price}
+                    onChange={(e) => handlePlanPriceChange(plan.id, Number(e.target.value))}
                     className="w-full bg-surface-container-high p-3 rounded-lg border border-white/10 text-lg font-bold text-primary focus:outline-none focus:border-primary"
                   />
-                </div>
-
-                <div>
-                  <label htmlFor={`monthly-${plan.id}`} className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
-                    Acompanhamento mensal (R$ · 0 = sem mensalidade)
-                  </label>
-                  <input
-                    id={`monthly-${plan.id}`}
-                    type="number"
-                    min={0}
-                    value={plan.monthlyPrice}
-                    onChange={(e) => handlePlanPriceChange(plan.id, 'monthlyPrice', Number(e.target.value))}
-                    className="w-full bg-surface-container-high p-3 rounded-lg border border-white/10 text-lg font-bold text-on-surface focus:outline-none focus:border-primary"
-                  />
+                  <p className="text-[11px] text-on-surface-variant mt-1">
+                    Tier no Offer Triangle: {plan.internalTier}
+                  </p>
                 </div>
 
                 <div className="text-xs text-on-surface-variant">
@@ -766,21 +753,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 />
               </div>
 
-              <div>
-                <label htmlFor="set-min" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
-                  Prazo mínimo de contrato, em meses (0 = sem prazo mínimo)
-                </label>
-                <input
-                  id="set-min"
-                  type="number"
-                  min={0}
-                  value={siteSettingsForm.minimumContractMonths}
-                  onChange={(e) =>
-                    setSiteSettingsForm({ ...siteSettingsForm, minimumContractMonths: Number(e.target.value) })
-                  }
-                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
-                />
-              </div>
             </div>
           </div>
         </form>

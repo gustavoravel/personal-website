@@ -85,7 +85,7 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
     if (!plans.length) return undefined;
     if (totalScore <= 60) return plans.find((p) => p.id === 'plan-completo') || plans[1] || plans[0];
     if (totalScore <= 110) return plans.find((p) => p.id === 'plan-essencial') || plans[0];
-    return plans.find((p) => p.id === 'plan-sob-medida') || plans[plans.length - 1];
+    return plans.find((p) => p.id === 'plan-equipe') || plans[plans.length - 1];
   };
 
   const suggested = recommendedPlan();
@@ -239,8 +239,8 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
                   <span>Pelo seu resultado, o que faz sentido é o plano {suggested.name}</span>
                 </div>
                 <p className="text-base text-on-surface-variant leading-relaxed">
-                  {suggested.description} Montagem de R$ {suggested.setupPrice.toLocaleString('pt-BR')}, uma vez só
-                  {suggested.monthlyPrice > 0 && `, com acompanhamento opcional de R$ ${suggested.monthlyPrice.toLocaleString('pt-BR')} por mês`}.
+                  {suggested.description} R$ {suggested.price.toLocaleString('pt-BR')}, pagamento único, pronto em até 7 dias
+                  {suggested.supportPeriod && `, com ${suggested.supportPeriod} de suporte incluso`}.
                 </p>
                 <button
                   onClick={onSeePlans}

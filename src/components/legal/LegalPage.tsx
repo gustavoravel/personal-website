@@ -123,47 +123,54 @@ const termsBlocks = (settings: SiteSettings): Block[] => [
   {
     heading: '3. Prazo de entrega',
     paragraphs: [
-      'O prazo padrão de implantação é de 3 dias úteis, contados a partir do momento em que você me enviar as informações necessárias (serviços, preços, horários e autorizações de acesso).',
+      'O prazo padrão de implantação é de 7 dias, contados a partir do momento em que você me enviar as informações necessárias (serviços, preços, horários e autorizações de acesso).',
       'Se a demora for minha, o prazo não gera custo para você. Se as informações atrasarem, o prazo começa a contar quando elas chegarem.'
     ]
   },
   {
     heading: '4. Pagamento',
     paragraphs: [
-      'A implantação é cobrada em duas partes: metade na aprovação da proposta e metade após a entrega testada e aprovada por você.',
-      'O acompanhamento mensal, quando contratado, é cobrado mês a mês e cobre hospedagem, alterações e manutenção conforme descrito na proposta.'
+      'O serviço é cobrado uma única vez, pelo valor da configuração contratada. Não há mensalidade, assinatura, renovação automática nem qualquer cobrança recorrente.',
+      'O pagamento é feito em duas partes: metade na aprovação da proposta e metade após a entrega testada e aprovada por você.'
     ]
   },
   {
-    heading: '5. Garantia',
+    heading: '5. Garantia de entrega',
     paragraphs: [
-      'Se a entrega não fizer o que está escrito na proposta, eu corrijo sem custo adicional. Se após a correção ainda não funcionar como combinado, devolvo o valor pago pela implantação.',
+      'Compromisso principal: WhatsApp Business e agenda online funcionando em até 7 dias corridos, contados conforme o item 3. Se esse prazo não for cumprido, a etapa correspondente não é cobrada.',
+      'Se a entrega não fizer o que está escrito na proposta, eu corrijo sem custo adicional. Persistindo a falha, o valor pago por aquela etapa é devolvido.',
       'A garantia cobre o funcionamento do que eu montei. Não cobre mudança de regra ou de preço de ferramentas de terceiros, nem alteração feita por você ou por outra pessoa nas configurações depois da entrega.'
     ]
   },
   {
-    heading: '6. Propriedade dos acessos',
+    heading: '6. Suporte incluído',
     paragraphs: [
-      'Todas as contas e ferramentas são criadas no seu nome e no seu e-mail. Você é o titular. Eu recebo apenas o acesso necessário para trabalhar, e você pode revogar esse acesso quando quiser.'
+      'Os planos que preveem suporte incluem atendimento por WhatsApp, diretamente comigo, pelo período indicado na proposta (30 dias no plano Completo e 90 dias no plano Equipe), para dúvidas e ajustes do que foi entregue.',
+      'Encerrado esse período, o sistema continua funcionando normalmente. Novos serviços podem ser contratados à parte, sempre com valor combinado antes.'
     ]
   },
   {
-    heading: '7. Cancelamento',
+    heading: '7. Propriedade dos acessos',
     paragraphs: [
-      settings.minimumContractMonths > 0
-        ? `O acompanhamento mensal tem prazo mínimo de ${settings.minimumContractMonths} meses. Após esse período, o cancelamento pode ser pedido a qualquer momento, com aviso de 30 dias e sem multa.`
-        : 'O acompanhamento mensal não tem prazo mínimo nem multa. Basta avisar, e a cobrança encerra no fim do mês vigente.',
-      'Ao cancelar, você continua dono de tudo o que foi criado no seu nome. A única exceção é a hospedagem da página, que passa a ser sua responsabilidade — ou eu te entrego os arquivos para levar para onde preferir.'
+      'Todas as contas e ferramentas são criadas no seu nome e no seu e-mail. Você é o titular. Eu recebo apenas o acesso necessário para trabalhar, e você pode revogar esse acesso quando quiser.',
+      'Concluída a entrega, tudo o que foi configurado continua sendo seu e funcionando, sem qualquer dependência de mim e sem nenhum pagamento adicional.'
     ]
   },
   {
-    heading: '8. Limites de responsabilidade',
+    heading: '8. Desistência',
+    paragraphs: [
+      'Como não há assinatura, não existe cancelamento a fazer nem multa a pagar.',
+      'Se você desistir antes do início da execução, o valor pago é devolvido integralmente. Se desistir com o trabalho em andamento, é cobrado apenas o que já foi efetivamente entregue e aprovado, e o restante é devolvido.'
+    ]
+  },
+  {
+    heading: '9. Limites de responsabilidade',
     paragraphs: [
       'Eu não respondo por indisponibilidade, mudança de regra ou bloqueio causados pelas plataformas de terceiros usadas na solução (por exemplo WhatsApp, Google ou provedores de agenda), nem por resultado comercial — quantidade de clientes ou faturamento —, que depende de muitos fatores fora do meu controle.'
     ]
   },
   {
-    heading: '9. Foro e legislação',
+    heading: '10. Foro e legislação',
     paragraphs: [
       'Estes termos seguem a legislação brasileira, incluindo o Código de Defesa do Consumidor e a LGPD. Eventuais conflitos serão resolvidos preferencialmente por conversa direta.'
     ]

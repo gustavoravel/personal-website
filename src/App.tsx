@@ -22,8 +22,7 @@ import { LegalPage } from './components/legal/LegalPage';
 import {
   INITIAL_CASE_STUDIES,
   INITIAL_DIAGNOSTIC_QUESTIONS,
-  INITIAL_FAQS,
-  INITIAL_ENTRY_OFFER
+  INITIAL_FAQS
 } from './services/store';
 
 export type AppView = 'home' | 'blog' | 'admin' | 'privacidade' | 'termos';
@@ -108,7 +107,6 @@ export function App() {
 
             <OfferTriangleVitrine
               plans={plans}
-              entryOffer={INITIAL_ENTRY_OFFER}
               settings={settings}
             />
 

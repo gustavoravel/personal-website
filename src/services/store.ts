@@ -1,97 +1,73 @@
-import { Plan, EntryOffer, CaseStudy, DiagnosticQuestion, BlogPost, FAQItem, Lead, SiteSettings } from '../types';
+import { Plan, CaseStudy, DiagnosticQuestion, BlogPost, FAQItem, Lead, SiteSettings } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 /**
- * Preços separados em implantação (uma vez) + acompanhamento mensal opcional.
- * O visitante leigo lia "R$ 999 por mês para sempre" e saía da página.
+ * Tiers e preços conforme o Offer Triangle (01-estrategia/tech-concierge-offer-triangle.html).
+ *
+ * Decisões que vêm de lá e NÃO devem ser alteradas sem revisar o documento:
+ * - Pagamento único por configuração. Não existe mensalidade.
+ * - R$ 397 / R$ 897 / R$ 1.497, com o tier do meio como recomendado.
+ * - Entrega em 7 dias corridos, com garantia: se não funcionar, a etapa não é cobrada.
+ * - Suporte incluso por período (30 dias no Core, 90 dias no Premium).
+ *
+ * Os nomes exibidos são em português porque o público é leigo — Starter/Core/
+ * Premium ficam só como referência interna em `internalTier`.
  */
 export const INITIAL_PLANS: Plan[] = [
   {
     id: 'plan-essencial',
     name: 'Essencial',
-    setupPrice: 499,
-    monthlyPrice: 99,
-    description: 'Sua página profissional no ar + WhatsApp comercial organizado para passar confiança imediata.',
+    internalTier: 'Starter',
+    price: 397,
+    description: 'Seu WhatsApp comercial organizado, respondendo as perguntas repetidas por você.',
     isPopular: false,
     features: [
-      'Página simples e bonita com seus serviços, preços e botão de WhatsApp',
-      'Perfil comercial do WhatsApp configurado com catálogo e mensagem de saudação',
-      'Cartão digital com seus links principais',
-      'Seu negócio encontrável no Google quando procurarem pelo seu serviço',
+      'Perfil comercial do WhatsApp configurado com seus horários, endereço e descrição',
+      'Catálogo com seus serviços e preços dentro do próprio WhatsApp',
+      'Mensagem de saudação e de ausência automáticas',
+      'Respostas prontas para as perguntas que você mais recebe',
       'Tudo criado no seu nome, com os seus acessos'
     ],
-    monthlyCovers: [
-      'Hospedagem da sua página paga por mim',
-      'Alterações de texto, preço e serviço quando você pedir',
-      'Conserto sem custo se alguma coisa parar de funcionar'
-    ],
+    supportPeriod: '',
     ctaText: 'Quero o Essencial',
-    whatsappMessage: 'Olá Gustavo! Quero contratar o plano Essencial para organizar meu WhatsApp e minha página.'
+    whatsappMessage: 'Olá Gustavo! Quero o plano Essencial (R$ 397) para organizar meu WhatsApp comercial.'
   },
   {
     id: 'plan-completo',
     name: 'Completo',
-    setupPrice: 999,
-    monthlyPrice: 149,
-    description: 'Seu cliente agenda sozinho por um link 24h por dia e recebe lembretes automáticos antes do horário.',
+    internalTier: 'Core',
+    price: 897,
+    description: 'Seu cliente agenda sozinho por um link e recebe lembrete automático antes do horário.',
     isPopular: true,
     features: [
       'Tudo do plano Essencial',
-      'Seu cliente escolhe o horário sozinho por um link — sem você trocar mensagens',
-      'Lembrete automático enviado por WhatsApp antes do horário para reduzir faltas',
-      'Formulário simples onde o cliente já te manda todas as informações necessárias',
-      'Uma tela só onde você vê em que pé está cada atendimento',
+      'Agenda online configurada: o cliente escolhe o horário livre sozinho, por um link',
+      'Uma automação de atendimento pronta (por exemplo, o lembrete automático antes do horário)',
+      'Tudo testado com você antes de entrar no ar',
       'Tudo criado no seu nome, com os seus acessos'
     ],
-    monthlyCovers: [
-      'Tudo do acompanhamento Essencial',
-      'Acompanho se os lembretes estão saindo e conserto se falhar',
-      'Resposta em até 4 horas úteis, direto comigo no WhatsApp'
-    ],
+    supportPeriod: '30 dias',
     ctaText: 'Quero o Completo',
-    whatsappMessage: 'Olá Gustavo! Vi o plano Completo e quero meu agendamento automático rodando em 3 dias úteis!'
+    whatsappMessage: 'Olá Gustavo! Vi o plano Completo (R$ 897) e quero meu agendamento automático funcionando.'
   },
   {
-    id: 'plan-sob-medida',
-    name: 'Sob Medida',
-    setupPrice: 2499,
-    monthlyPrice: 249,
-    description: 'Tarefas repetitivas acontecendo sozinhas: orçamentos, cobranças e relatórios sem você digitar nada.',
+    id: 'plan-equipe',
+    name: 'Equipe',
+    internalTier: 'Premium',
+    price: 1497,
+    description: 'Para quem tem funcionários: além de tudo montado, eu treino a sua equipe para usar.',
     isPopular: false,
     features: [
       'Tudo do plano Completo',
-      'Sistema feito para o seu jeito exato de trabalhar',
-      'Envio automático de orçamentos e lembretes de cobrança',
-      'Recebimento por Pix e cartão ligado direto no seu atendimento',
+      'Treinamento da sua equipe para usar o sistema no dia a dia',
+      'Material de apoio simples para consultar depois',
       'Tudo criado no seu nome, com os seus acessos'
     ],
-    monthlyCovers: [
-      'Tudo do acompanhamento Completo',
-      'Ajustes contínuos conforme seu negócio muda',
-      'Conversa de acompanhamento uma vez por mês'
-    ],
-    ctaText: 'Conversar sobre o Sob Medida',
-    whatsappMessage: 'Olá Gustavo! Tenho um projeto sob medida e gostaria de fazer uma análise personalizada.'
+    supportPeriod: '90 dias',
+    ctaText: 'Quero o Equipe',
+    whatsappMessage: 'Olá Gustavo! Tenho equipe e quero o plano Equipe (R$ 1.497), com treinamento incluso.'
   }
 ];
-
-/** Porta de entrada barata para quem não compra recorrência no primeiro contato. */
-export const INITIAL_ENTRY_OFFER: EntryOffer = {
-  name: 'Arrumo seu WhatsApp Business em 1 dia',
-  price: 249,
-  deliveryTime: '1 dia útil',
-  description:
-    'Serviço avulso, pagamento único, sem mensalidade e sem compromisso. É a forma mais barata de me testar antes de contratar qualquer plano.',
-  includes: [
-    'Perfil comercial configurado com seus horários, endereço e descrição',
-    'Catálogo com seus serviços e preços dentro do WhatsApp',
-    'Mensagem de saudação e de ausência automáticas',
-    'Até 10 respostas rápidas para as perguntas que você mais recebe',
-    'Explicação em vídeo curto de como mexer em tudo depois'
-  ],
-  whatsappMessage:
-    'Olá Gustavo! Quero o serviço avulso de arrumar meu WhatsApp Business em 1 dia (R$ 249).'
-};
 
 // Honest demonstration prototypes instead of fake success statistics
 export const INITIAL_CASE_STUDIES: CaseStudy[] = [
@@ -99,7 +75,7 @@ export const INITIAL_CASE_STUDIES: CaseStudy[] = [
     id: 'case-1',
     title: 'Como Fica o Agendamento Automático na Prática',
     clientCategory: 'Demonstração de Protótipo',
-    timeframe: 'Prazo de 3 dias úteis em contrato',
+    timeframe: 'Prazo de 7 dias em contrato',
     summary: 'Demonstração prática de como um profissional autônomo elimina a troca de mensagens repetitivas para marcar horários.',
     before: {
       status: 'Antes: Agendamento Manual Cansativo',
@@ -125,7 +101,7 @@ export const INITIAL_CASE_STUDIES: CaseStudy[] = [
     id: 'case-2',
     title: 'Como Fica a Qualificação e Envio de Orçamentos',
     clientCategory: 'Demonstração de Protótipo',
-    timeframe: 'Prazo de 3 dias úteis em contrato',
+    timeframe: 'Prazo de 7 dias em contrato',
     summary: 'Demonstração de como um formulário simples já entrega o cliente qualificado e pronto para fechar.',
     before: {
       status: 'Antes: Perguntas Repetitivas',
@@ -152,35 +128,35 @@ export const INITIAL_CASE_STUDIES: CaseStudy[] = [
 export const INITIAL_FAQS: FAQItem[] = [
   {
     question: 'E se eu não entender nada de tecnologia?',
-    answer: 'É exatamente para isso que existo! Você não precisa aprender nada complicado nem entender de código. Eu entrego tudo pronto e configurado para você usar em 3 dias úteis, e te explico passo a passo como mexer.'
+    answer: 'É exatamente para isso que eu existo. Você não precisa aprender nada complicado nem entender de código. Eu entrego tudo pronto, testado e funcionando, e depois te explico como mexer em linguagem simples — sem termo técnico e quantas vezes precisar.'
   },
   {
     question: 'As contas e ferramentas ficam no meu nome?',
-    answer: 'Sim! Esta é a regra principal do meu trabalho: tudo é criado no seu próprio nome e no seu e-mail. Você é o único dono absoluto de toda a sua estrutura. Se um dia quiser parar a consultoria, tudo continua funcionando na sua mão.'
+    answer: 'Sim, e essa é a regra principal do meu trabalho: tudo é criado no seu próprio nome e no seu e-mail. Você é o dono de tudo desde o primeiro dia. Se um dia você não quiser mais falar comigo, nada para de funcionar e você não perde nada — não existe nenhuma peça presa comigo.'
   },
   {
     question: 'Você vai pedir minhas senhas pessoais do WhatsApp?',
-    answer: 'Nunca! A configuração do WhatsApp Business e do sistema de agendamento é feita com acessos seguros de integração e autorização na tela do seu próprio celular. Suas conversas e dados pessoais continuam 100% privados e protegidos.'
+    answer: 'Nunca. A configuração é feita com autorização na tela do seu próprio celular, por você. Eu não peço senha do seu WhatsApp, do seu banco nem do seu e-mail. Suas conversas e seus contatos continuam privados — eu não tenho acesso a eles.'
   },
   {
-    question: 'Se eu cancelar o acompanhamento depois de 2 meses, o que continua funcionando?',
-    answer: 'Continua funcionando praticamente tudo: seu WhatsApp comercial, seu link de agendamento, sua agenda e seus lembretes ficam de pé, porque estão nas suas próprias contas. Você só perde o meu acompanhamento — ou seja, os ajustes e a manutenção passam a ser por conta sua. A única exceção é a hospedagem da página, que hoje é paga por mim dentro da mensalidade: se você cancelar, ou assume esse custo (hoje na faixa de R$ 15 a R$ 30 por mês) ou eu te entrego os arquivos para levar para onde quiser. Não existe prazo mínimo nem multa.'
+    question: 'É pagamento único ou vou ficar preso numa mensalidade?',
+    answer: 'É pagamento único. Você paga a configuração uma vez e pronto — não existe mensalidade, não existe fidelidade e não existe cobrança recorrente. Depois da entrega, o sistema é seu e continua funcionando sem você me pagar mais nada.'
   },
   {
-    question: 'O que acontece se der algum problema após a entrega?',
-    answer: 'Eu não sumirei após a entrega. Você tem suporte direto comigo via WhatsApp por 30 dias inclusos para tirar qualquer dúvida ou solicitar ajustes, e o acompanhamento mensal (se você contratar) cobre isso de forma contínua. Se algo não funcionar como combinado, eu refaço sem nenhum custo adicional.'
+    question: 'Depois que você entregar e for embora, se der problema?',
+    answer: 'Todo plano a partir do Completo já vem com um período de suporte incluso por WhatsApp — 30 dias no Completo e 90 dias no Equipe — para tirar dúvida ou ajustar o que for preciso, sem custo. E se o problema for algo que eu configurei errado, eu conserto mesmo fora do prazo: o erro é meu, a conta não é sua.'
   },
   {
-    question: 'Em quanto tempo meu sistema fica pronto de verdade?',
-    answer: 'O prazo padrão é de 3 dias úteis após a nossa conversa inicial de alinhamento, contados de quando você me passar as informações que eu preciso (seus serviços, preços e horários). Esse compromisso de entrega é assumido por escrito.'
+    question: 'Em quanto tempo fica pronto de verdade?',
+    answer: 'Em até 7 dias corridos, contados de quando você me passar as informações que eu preciso (seus serviços, preços e horários). E esse prazo tem consequência: se o seu WhatsApp e a sua agenda não estiverem funcionando em 7 dias, aquela etapa não é cobrada.'
   },
   {
-    question: 'Preciso pagar ferramentas caras de terceiros além do seu serviço?',
-    answer: 'Não. Eu monto tudo em cima de ferramentas gratuitas ou de custo muito baixo: WhatsApp Business é gratuito, Google Agenda é gratuito e o agendamento online roda no plano gratuito. A hospedagem da sua página está inclusa na mensalidade enquanto você tiver acompanhamento comigo. Se em algum momento o seu caso exigir uma ferramenta paga, eu te aviso o valor antes de contratar — nunca aparece uma cobrança que você não aprovou.'
+    question: 'Preciso pagar ferramentas caras além do seu serviço?',
+    answer: 'Não. Eu monto tudo em cima de ferramentas gratuitas ou de custo muito baixo: o WhatsApp Business é gratuito, o Google Agenda é gratuito e o agendamento online roda no plano gratuito. Se em algum momento o seu caso exigir uma ferramenta paga, eu te falo o valor antes — nunca aparece cobrança que você não aprovou.'
   },
   {
-    question: 'E se eu não gostar do resultado final?',
-    answer: 'O trabalho só é considerado concluído quando você testar e aprovar a solução rodando na prática. Se o sistema não funcionar como combinado no nosso diagnóstico, eu refaço ou devolvo o seu investimento.'
+    question: 'E se eu não gostar do resultado?',
+    answer: 'O trabalho só é dado por concluído quando você testar e aprovar funcionando na prática. Se não ficar como combinamos, eu refaço. Se ainda assim não funcionar, você não paga por aquela etapa.'
   }
 ];
 
@@ -256,20 +232,19 @@ export const INITIAL_SETTINGS: SiteSettings = {
   meiCnpj: '',
   meiStatus: '',
   meiRazaoSocial: '',
-  minimumContractMonths: 0,
   heroHeadline: 'Sua tecnologia funcionando — sem você precisar entender de tecnologia',
-  heroSubheadline: 'Eu configuro seu WhatsApp, sua agenda online e seus lembretes automáticos em 3 dias úteis. Tudo pronto para usar. Se não funcionar como combinado, eu refaço.'
+  heroSubheadline: 'Eu configuro seu WhatsApp, sua agenda online e seus lembretes automáticos em 7 dias. Tudo pronto para usar. Se não funcionar como combinado, eu refaço.'
 };
 
 export const INITIAL_LEADS: Lead[] = [];
 
-// v3: preços passaram a ser setupPrice + monthlyPrice, e settings ganhou
-// contactEmail/city/CNPJ opcionais. Dados v2 em cache têm outro formato.
+// v4: preços passaram a ser pagamento único (Offer Triangle). Planos em
+// cache das versões anteriores têm outro formato e quebrariam a vitrine.
 const STORAGE_KEYS = {
-  PLANS: 'gr_plans_v3',
-  POSTS: 'gr_posts_v3',
-  SETTINGS: 'gr_settings_v3',
-  LEADS: 'gr_leads_v3'
+  PLANS: 'gr_plans_v4',
+  POSTS: 'gr_posts_v4',
+  SETTINGS: 'gr_settings_v4',
+  LEADS: 'gr_leads_v4'
 };
 
 export class AppStore {

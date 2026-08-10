@@ -16,9 +16,9 @@ export const GuaranteeSection: React.FC<GuaranteeSectionProps> = ({ settings }) 
   const rules = [
     {
       icon: RefreshCw,
-      title: 'Não funcionou como combinado? Eu refaço.',
+      title: 'Não funcionou em 7 dias? A etapa não é cobrada.',
       body:
-        'Antes de começar, escrevo no contrato exatamente o que o sistema tem que fazer. Se na entrega ele não fizer aquilo, eu corrijo sem cobrar nada a mais. Se depois de corrigir ainda não funcionar, eu devolvo o valor da implantação.'
+        'Este é o compromisso principal, e ele vai escrito no contrato: seu WhatsApp e sua agenda funcionando em até 7 dias corridos. Se eu não entregar isso no prazo, aquela etapa sai da sua conta — não é desconto nem crédito para o futuro, é não cobrar.'
     },
     {
       icon: Eye,

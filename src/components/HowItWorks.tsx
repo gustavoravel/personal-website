@@ -12,8 +12,8 @@ export const HowItWorks: React.FC = () => {
     {
       step: '02',
       icon: Settings2,
-      title: 'Eu Configuro Tudo em 3 Dias Úteis',
-      description: 'Monto sua página, seu WhatsApp comercial e seu agendamento automático. Tudo criado no seu e-mail e no seu nome.'
+      title: 'Eu Configuro Tudo em 7 Dias',
+      description: 'Monto seu WhatsApp comercial, seu agendamento online e os lembretes automáticos. Tudo criado no seu e-mail e no seu nome. Se não estiver funcionando em 7 dias, a etapa não é cobrada.'
     },
     {
       step: '03',

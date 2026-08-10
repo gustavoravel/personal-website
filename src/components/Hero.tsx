@@ -13,8 +13,8 @@ export const Hero: React.FC<HeroProps> = ({ settings, onStartDiagnostic }) => {
   // ("100% de produtividade", "faltas a zero" — nada disso é conferível).
   const commitments = [
     {
-      value: '3 dias úteis',
-      label: 'Prazo que eu assumo por escrito no contrato',
+      value: '7 dias',
+      label: 'Funcionando no prazo — ou a etapa não é cobrada',
       color: 'text-primary'
     },
     {
@@ -23,8 +23,8 @@ export const Hero: React.FC<HeroProps> = ({ settings, onStartDiagnostic }) => {
       color: 'text-emerald-400'
     },
     {
-      value: 'Eu refaço',
-      label: 'Se não funcionar como combinado, corrijo ou devolvo',
+      value: 'Pago uma vez',
+      label: 'Sem mensalidade, sem fidelidade e sem cobrança que se repete',
       color: 'text-sky-400'
     }
   ];
@@ -35,7 +35,7 @@ export const Hero: React.FC<HeroProps> = ({ settings, onStartDiagnostic }) => {
 
       <div className="inline-flex items-center gap-2 bg-surface-container-high border border-primary/30 px-4 py-2 rounded-full text-sm font-semibold text-primary mb-8">
         <ShieldCheck className="w-4 h-4" />
-        <span>Pronto em 3 dias úteis · Você fala direto comigo</span>
+        <span>Pronto em 7 dias · Você fala direto comigo</span>
       </div>
 
       <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-on-surface mb-6 max-w-4xl mx-auto leading-tight">
@@ -46,8 +46,8 @@ export const Hero: React.FC<HeroProps> = ({ settings, onStartDiagnostic }) => {
       </h1>
 
       <p className="text-lg sm:text-xl text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed">
-        Eu configuro seu WhatsApp, sua agenda online e seus lembretes automáticos, e entrego tudo pronto para usar em 3 dias úteis.
-        Se não funcionar como combinado, eu refaço.
+        Eu configuro seu WhatsApp, sua agenda online e seus lembretes automáticos, e entrego tudo pronto para usar em 7 dias.
+        Se não estiver funcionando no prazo, a etapa não é cobrada.
       </p>
 
       {/* Um CTA primário. O WhatsApp é opção secundária discreta. */}

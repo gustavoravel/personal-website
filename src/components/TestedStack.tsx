@@ -32,10 +32,10 @@ export const TestedStack: React.FC = () => {
     },
     {
       icon: LayoutList,
-      benefit: 'Uma tela só, onde você vê em que pé está cada cliente',
+      benefit: 'Você aprende a mexer — e tem por escrito para consultar',
       detail:
-        'Sem procurar nome no meio de trezentas conversas. Você abre, olha e sabe quem está esperando resposta, quem já fechou e quem sumiu.',
-      tool: 'painel simples de acompanhamento'
+        'Na entrega eu te mostro tudo funcionando e te explico como alterar preço, horário e mensagem. Depois fica um material curto e simples para você (ou sua equipe) consultar quando precisar.',
+      tool: 'guia de apoio incluso na entrega'
     }
   ];
 
