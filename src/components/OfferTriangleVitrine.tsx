@@ -52,9 +52,15 @@ export const OfferTriangleVitrine: React.FC<OfferTriangleVitrineProps> = ({ plan
             )}
 
             <div className="p-8 flex-grow space-y-6">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <h3 className="text-2xl font-bold text-on-surface">{plan.name}</h3>
                 <p className="text-base text-on-surface-variant leading-relaxed">{plan.description}</p>
+
+                {plan.highlight && (
+                  <p className="text-base text-on-surface leading-relaxed border-l-4 border-primary pl-4 py-1">
+                    {plan.highlight}
+                  </p>
+                )}
               </div>
 
               {/* Pagamento único: sem mensalidade, sem fidelidade. */}

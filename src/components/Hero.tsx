@@ -46,7 +46,7 @@ export const Hero: React.FC<HeroProps> = ({ settings, onStartDiagnostic }) => {
       </h1>
 
       <p className="text-lg sm:text-xl text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed">
-        Eu configuro seu WhatsApp, sua agenda online e seus lembretes automáticos, e entrego tudo pronto para usar em 7 dias.
+        Eu organizo seu WhatsApp comercial e coloco sua agenda online no ar, e entrego tudo pronto para usar em 7 dias.
         Se não estiver funcionando no prazo, a etapa não é cobrada.
       </p>
 

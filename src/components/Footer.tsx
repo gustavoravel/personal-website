@@ -43,7 +43,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, setCurrentView, onNavi
             </div>
 
             <p className="text-base leading-relaxed max-w-sm">
-              Eu configuro seu WhatsApp, sua agenda e seus lembretes automáticos, e te explico como usar sem jargão.
+              Eu organizo seu WhatsApp comercial, coloco sua agenda online no ar e automatizo o que é repetitivo — explicando tudo sem jargão.
             </p>
 
             {(settings.city || settings.serviceArea) && (

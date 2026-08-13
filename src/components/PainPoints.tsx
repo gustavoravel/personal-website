@@ -11,7 +11,7 @@ export const PainPoints: React.FC = () => {
     {
       icon: UserX,
       title: 'O cliente marca um horário e simplesmente não aparece',
-      description: 'Sem um lembrete automático antes da reunião ou consulta, a taxa de faltas é alta e você perde tempo vago na agenda.'
+      description: 'O horário foi combinado no meio da conversa e não ficou marcado em lugar nenhum — nem na agenda dele, nem na sua. Aí some o cliente e some o seu tempo.'
     },
     {
       icon: FileQuestion,

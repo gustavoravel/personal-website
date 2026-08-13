@@ -145,7 +145,7 @@ const termsBlocks = (settings: SiteSettings): Block[] => [
   {
     heading: '6. Suporte incluído',
     paragraphs: [
-      'Os planos que preveem suporte incluem atendimento por WhatsApp, diretamente comigo, pelo período indicado na proposta (30 dias no plano Completo e 90 dias no plano Equipe), para dúvidas e ajustes do que foi entregue.',
+      'Todos os planos incluem atendimento por WhatsApp, diretamente comigo, pelo período indicado na proposta — 10 dias no plano Essencial, 30 dias no plano Completo e 90 dias no plano Equipe —, para dúvidas e ajustes do que foi entregue.',
       'Encerrado esse período, o sistema continua funcionando normalmente. Novos serviços podem ser contratados à parte, sempre com valor combinado antes.'
     ]
   },

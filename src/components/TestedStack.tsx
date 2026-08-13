@@ -25,17 +25,17 @@ export const TestedStack: React.FC = () => {
     },
     {
       icon: Bell,
-      benefit: 'Lembrete automático antes do horário, para reduzir faltas',
+      benefit: 'O compromisso entra na agenda do próprio cliente',
       detail:
-        'O aviso sai sozinho no WhatsApp do cliente algumas horas antes. Quem esqueceu, lembra. Quem não pode mais, avisa em tempo de você encaixar outro.',
-      tool: 'envio automático'
+        'Assim que ele marca, recebe a confirmação por e-mail e o horário cai no celular dele — que avisa sozinho, como avisa de qualquer outro compromisso. Quem esqueceu, lembra; quem não pode mais, desmarca a tempo de você encaixar outro.',
+      tool: 'convite de agenda e e-mail de confirmação, sem custo por mensagem'
     },
     {
       icon: LayoutList,
-      benefit: 'Você aprende a mexer — e tem por escrito para consultar',
+      benefit: 'Tarefas repetitivas acontecendo sem você digitar',
       detail:
-        'Na entrega eu te mostro tudo funcionando e te explico como alterar preço, horário e mensagem. Depois fica um material curto e simples para você (ou sua equipe) consultar quando precisar.',
-      tool: 'guia de apoio incluso na entrega'
+        'Mandar o orçamento, cobrar quem ficou de responder, retomar quem sumiu no meio. São coisas que você faz na mão todo dia e que passam a acontecer sozinhas — quais exatamente, a gente decide olhando o seu atendimento.',
+      tool: 'incluso no plano Completo'
     }
   ];
 

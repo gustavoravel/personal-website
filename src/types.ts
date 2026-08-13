@@ -6,6 +6,8 @@ export interface Plan {
   /** Valor da configuração. Pagamento único — não há mensalidade. */
   price: number;
   description: string;
+  /** Frase de posicionamento destacada no card. Opcional. */
+  highlight?: string;
   isPopular?: boolean;
   features: string[];
   /** Período de suporte incluso por WhatsApp. Vazio = não incluso. */

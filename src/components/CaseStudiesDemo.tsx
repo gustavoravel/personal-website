@@ -181,9 +181,9 @@ export const CaseStudiesDemo: React.FC<CaseStudiesDemoProps> = ({ caseStudies })
                     </div>
 
                     <div className="bg-emerald-900/40 border border-emerald-500/30 p-4 rounded-2xl rounded-tr-sm max-w-[90%] ml-auto text-base text-on-surface leading-relaxed">
-                      Confirmado, quinta às 15h. Vou te lembrar 2 horas antes.
+                      Confirmado, quinta às 15h. Já mandei o convite para a sua agenda.
                       <span className="block text-sm text-on-surface-variant mt-2">
-                        Horário já reservado na sua agenda · lembrete programado
+                        Horário reservado na sua agenda e na dele · confirmação por e-mail
                       </span>
                     </div>
                   </div>
