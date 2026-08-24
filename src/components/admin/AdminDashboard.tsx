@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { Plan, BlogPost, Lead, SiteSettings } from '../../types';
+import { Plan, BlogPost, Lead, SiteSettings, EntryOffer } from '../../types';
 import { AppStore } from '../../services/store';
 import {
   getCurrentUser,
@@ -9,14 +9,17 @@ import {
   signInWithEmail,
   signOut,
 } from '../../lib/auth';
+import { PlansEditor } from './PlansEditor';
 import { Lock, Save, Plus, Trash2, Edit, Check, X, DollarSign, FileText, Users, Settings, MessageCircle, ShieldCheck, LogOut } from 'lucide-react';
 
 interface AdminDashboardProps {
   plans: Plan[];
+  entryOffer: EntryOffer;
   posts: BlogPost[];
   leads: Lead[];
   settings: SiteSettings;
   onUpdatePlans: (plans: Plan[]) => void;
+  onUpdateEntryOffer: (offer: EntryOffer) => void;
   onUpdatePosts: (posts: BlogPost[]) => void;
   onUpdateSettings: (settings: SiteSettings) => void;
   onBackToHome: () => void;
@@ -24,10 +27,12 @@ interface AdminDashboardProps {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   plans,
+  entryOffer,
   posts,
   leads,
   settings,
   onUpdatePlans,
+  onUpdateEntryOffer,
   onUpdatePosts,
   onUpdateSettings,
   onBackToHome
@@ -39,10 +44,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
   const [activeTab, setActiveTab] = useState<'plans' | 'blog' | 'leads' | 'settings'>('plans');
-
-  // Plan editing state
-  const [editingPlans, setEditingPlans] = useState<Plan[]>(plans);
-  const [planSavedMsg, setPlanSavedMsg] = useState<boolean>(false);
 
   // Blog editing state
   const [blogList, setBlogList] = useState<BlogPost[]>(posts);
@@ -112,20 +113,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     await signOut();
     setUser(null);
     onBackToHome();
-  };
-
-  // Save Plans
-  const handleSavePlans = () => {
-    AppStore.savePlans(editingPlans);
-    onUpdatePlans(editingPlans);
-    setPlanSavedMsg(true);
-    setTimeout(() => setPlanSavedMsg(false), 2500);
-  };
-
-  const handlePlanPriceChange = (id: string, field: 'setupPrice' | 'monthlyPrice', newPrice: number) => {
-    setEditingPlans((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, [field]: newPrice } : p))
-    );
   };
 
   // Save Post
@@ -297,7 +284,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             onClick={onBackToHome}
             className="glass-panel text-on-surface hover:text-primary px-4 py-2 rounded-lg font-bold text-xs border border-white/10"
           >
-            Voltar ao Site
+            Ver seção Preços
           </button>
           <button
             type="button"
@@ -321,7 +308,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }`}
         >
           <DollarSign className="w-4 h-4" />
-          <span>Gerenciar Preços &amp; Planos</span>
+          <span>Seção Preços</span>
         </button>
 
         <button
@@ -363,72 +350,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* TAB 1: Plans Pricing Management */}
       {activeTab === 'plans' && (
-        <div className="glass-panel p-8 rounded-2xl border border-white/10 space-y-6">
-          <div className="flex justify-between items-center border-b border-white/10 pb-4">
-            <div>
-              <h2 className="text-xl font-bold text-on-surface">Alteração dos Preços dos Planos</h2>
-              <p className="text-xs text-on-surface-variant">Modifique os valores cobrados na vitrine pública em tempo real.</p>
-            </div>
-
-            <button
-              onClick={handleSavePlans}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-lg text-xs flex items-center gap-2"
-            >
-              <Save className="w-4 h-4" />
-              <span>Salvar Alterações de Preço</span>
-            </button>
-          </div>
-
-          {planSavedMsg && (
-            <div className="bg-emerald-500/20 text-emerald-300 p-3 rounded-lg border border-emerald-500/30 text-xs font-bold flex items-center gap-2">
-              <Check className="w-4 h-4" />
-              <span>Preços atualizados com sucesso no sistema!</span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {editingPlans.map((plan) => (
-              <div key={plan.id} className="bg-surface-container p-6 rounded-xl border border-white/10 space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-lg text-on-surface">{plan.name}</span>
-                  {plan.isPopular && <span className="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded">Mais Popular</span>}
-                </div>
-
-                <div>
-                  <label htmlFor={`setup-${plan.id}`} className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
-                    Implantação — uma vez (R$)
-                  </label>
-                  <input
-                    id={`setup-${plan.id}`}
-                    type="number"
-                    min={0}
-                    value={plan.setupPrice}
-                    onChange={(e) => handlePlanPriceChange(plan.id, 'setupPrice', Number(e.target.value))}
-                    className="w-full bg-surface-container-high p-3 rounded-lg border border-white/10 text-lg font-bold text-primary focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor={`monthly-${plan.id}`} className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
-                    Acompanhamento mensal (R$ · 0 = sem mensalidade)
-                  </label>
-                  <input
-                    id={`monthly-${plan.id}`}
-                    type="number"
-                    min={0}
-                    value={plan.monthlyPrice}
-                    onChange={(e) => handlePlanPriceChange(plan.id, 'monthlyPrice', Number(e.target.value))}
-                    className="w-full bg-surface-container-high p-3 rounded-lg border border-white/10 text-lg font-bold text-on-surface focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                <div className="text-xs text-on-surface-variant">
-                  <span className="font-bold">Descrição:</span> {plan.description}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <PlansEditor
+          plans={plans}
+          entryOffer={entryOffer}
+          onUpdatePlans={onUpdatePlans}
+          onUpdateEntryOffer={onUpdateEntryOffer}
+        />
       )}
 
       {/* TAB 2: Blog Management */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plan, BlogPost, Lead, SiteSettings } from './types';
+import { Plan, BlogPost, Lead, SiteSettings, EntryOffer } from './types';
 import { AppStore } from './services/store';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
@@ -23,7 +23,6 @@ import {
   INITIAL_CASE_STUDIES,
   INITIAL_DIAGNOSTIC_QUESTIONS,
   INITIAL_FAQS,
-  INITIAL_ENTRY_OFFER
 } from './services/store';
 
 export type AppView = 'home' | 'blog' | 'admin' | 'privacidade' | 'termos';
@@ -45,17 +44,30 @@ const viewFromHash = (): AppView => {
 
 export function App() {
   const [currentView, setCurrentView] = useState<AppView>(viewFromHash);
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [settings, setSettings] = useState<SiteSettings>(AppStore.getSettings());
+  const [plans, setPlans] = useState<Plan[]>(() => AppStore.getPlans());
+  const [entryOffer, setEntryOffer] = useState<EntryOffer>(() => AppStore.getEntryOffer());
+  const [posts, setPosts] = useState<BlogPost[]>(() => AppStore.getPosts());
+  const [leads, setLeads] = useState<Lead[]>(() => AppStore.getLeads());
+  const [settings, setSettings] = useState<SiteSettings>(() => AppStore.getSettings());
 
-  useEffect(() => {
+  /** Garante que a landing sempre lê o que está persistido (inclui HMR / aba admin). */
+  const reloadFromStore = () => {
     setPlans(AppStore.getPlans());
+    setEntryOffer(AppStore.getEntryOffer());
     setPosts(AppStore.getPosts());
     setLeads(AppStore.getLeads());
     setSettings(AppStore.getSettings());
+  };
+
+  useEffect(() => {
+    reloadFromStore();
   }, []);
+
+  useEffect(() => {
+    if (currentView === 'home') {
+      reloadFromStore();
+    }
+  }, [currentView]);
 
   useEffect(() => {
     const onHashChange = () => setCurrentView(viewFromHash());
@@ -64,7 +76,9 @@ export function App() {
   }, []);
 
   const goHomeAndScrollTo = (selector: string) => {
+    const section = selector.replace(/^#/, '');
     setCurrentView('home');
+    window.location.hash = section;
     setTimeout(() => {
       document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
@@ -78,6 +92,16 @@ export function App() {
     setCurrentView(view);
     window.location.hash = view === 'home' ? '' : view;
     window.scrollTo({ top: 0 });
+  };
+
+  const handleUpdatePlans = (next: Plan[]) => {
+    AppStore.savePlans(next);
+    setPlans(AppStore.getPlans());
+  };
+
+  const handleUpdateEntryOffer = (next: EntryOffer) => {
+    AppStore.saveEntryOffer(next);
+    setEntryOffer(AppStore.getEntryOffer());
   };
 
   const isLegalView = currentView === 'privacidade' || currentView === 'termos';
@@ -108,7 +132,7 @@ export function App() {
 
             <OfferTriangleVitrine
               plans={plans}
-              entryOffer={INITIAL_ENTRY_OFFER}
+              entryOffer={entryOffer}
               settings={settings}
             />
 
@@ -167,13 +191,15 @@ export function App() {
         {currentView === 'admin' && (
           <AdminDashboard
             plans={plans}
+            entryOffer={entryOffer}
             posts={posts}
             leads={leads}
             settings={settings}
-            onUpdatePlans={setPlans}
+            onUpdatePlans={handleUpdatePlans}
+            onUpdateEntryOffer={handleUpdateEntryOffer}
             onUpdatePosts={setPosts}
             onUpdateSettings={setSettings}
-            onBackToHome={() => goToView('home')}
+            onBackToHome={() => goHomeAndScrollTo('#planos')}
           />
         )}
       </main>

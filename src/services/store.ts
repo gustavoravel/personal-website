@@ -266,16 +266,36 @@ export const INITIAL_LEADS: Lead[] = [];
 // contactEmail/city/CNPJ opcionais. Dados v2 em cache têm outro formato.
 const STORAGE_KEYS = {
   PLANS: 'gr_plans_v3',
+  ENTRY_OFFER: 'gr_entry_offer_v3',
   POSTS: 'gr_posts_v3',
   SETTINGS: 'gr_settings_v3',
   LEADS: 'gr_leads_v3'
 };
 
 export class AppStore {
-  // Plans
+  // Plans — mesmos dados da seção Preços (#planos) na landing
   static getPlans(): Plan[] {
     const cached = localStorage.getItem(STORAGE_KEYS.PLANS);
-    return cached ? JSON.parse(cached) : INITIAL_PLANS;
+    if (!cached) return INITIAL_PLANS;
+
+    try {
+      const parsed = JSON.parse(cached) as Plan[];
+      if (!Array.isArray(parsed) || parsed.length === 0) return INITIAL_PLANS;
+      return parsed.map((plan) => ({
+        id: plan.id || `plan-${Date.now()}`,
+        name: plan.name || 'Plano',
+        setupPrice: Number(plan.setupPrice) || 0,
+        monthlyPrice: Number(plan.monthlyPrice) || 0,
+        description: plan.description || '',
+        isPopular: Boolean(plan.isPopular),
+        features: Array.isArray(plan.features) ? plan.features : [],
+        monthlyCovers: Array.isArray(plan.monthlyCovers) ? plan.monthlyCovers : [],
+        ctaText: plan.ctaText || 'Quero este plano',
+        whatsappMessage: plan.whatsappMessage || '',
+      }));
+    } catch {
+      return INITIAL_PLANS;
+    }
   }
 
   static savePlans(plans: Plan[]): void {
@@ -286,6 +306,30 @@ export class AppStore {
         await client.from('plans').upsert(p);
       });
     }
+  }
+
+  // Entry offer (bloco verde no topo da seção Preços)
+  static getEntryOffer(): EntryOffer {
+    const cached = localStorage.getItem(STORAGE_KEYS.ENTRY_OFFER);
+    if (!cached) return INITIAL_ENTRY_OFFER;
+
+    try {
+      const parsed = JSON.parse(cached) as EntryOffer;
+      return {
+        name: parsed.name || INITIAL_ENTRY_OFFER.name,
+        price: Number(parsed.price) || 0,
+        deliveryTime: parsed.deliveryTime || INITIAL_ENTRY_OFFER.deliveryTime,
+        description: parsed.description || '',
+        includes: Array.isArray(parsed.includes) ? parsed.includes : INITIAL_ENTRY_OFFER.includes,
+        whatsappMessage: parsed.whatsappMessage || '',
+      };
+    } catch {
+      return INITIAL_ENTRY_OFFER;
+    }
+  }
+
+  static saveEntryOffer(offer: EntryOffer): void {
+    localStorage.setItem(STORAGE_KEYS.ENTRY_OFFER, JSON.stringify(offer));
   }
 
   // Blog Posts
