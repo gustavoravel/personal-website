@@ -1,97 +1,87 @@
-import { Plan, EntryOffer, CaseStudy, DiagnosticQuestion, BlogPost, FAQItem, Lead, SiteSettings } from '../types';
+import { Plan, CaseStudy, DiagnosticQuestion, BlogPost, FAQItem, Lead, SiteSettings } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 /**
- * Preços separados em implantação (uma vez) + acompanhamento mensal opcional.
- * O visitante leigo lia "R$ 999 por mês para sempre" e saía da página.
+ * Tiers e preços.
+ *
+ * Base: Offer Triangle (01-estrategia/tech-concierge-offer-triangle.html) —
+ * pagamento único por configuração, R$ 397 / 897 / 1.497, entrega em 7 dias
+ * com garantia de "não funcionou, não é cobrado".
+ *
+ * DIVERGÊNCIA a atualizar no documento: o Essencial passou a incluir a agenda
+ * online (que no Offer Triangle era o Core), e o Completo virou o tier de
+ * automação de processos comerciais.
+ *
+ * O Essencial a R$ 397 com escopo de Core é DECISÃO DELIBERADA: é isca de
+ * entrada, para o cliente desconfiado comprar um teste pequeno antes de
+ * confiar num valor maior. Não "corrigir" esse preço achando que é erro.
+ * O que separa o Essencial do Completo é o suporte (10 dias contra 30) e a
+ * automação dos processos comerciais.
+ *
+ * NADA aqui promete lembrete automático por WhatsApp: pelo aplicativo do
+ * celular isso não existe, e pela Cloud API cada mensagem de template tem
+ * custo. O que reduz falta aqui é o convite que entra na agenda do próprio
+ * cliente — esse sim é gratuito e real.
  */
 export const INITIAL_PLANS: Plan[] = [
   {
     id: 'plan-essencial',
     name: 'Essencial',
-    setupPrice: 499,
-    monthlyPrice: 99,
-    description: 'Sua página profissional no ar + WhatsApp comercial organizado para passar confiança imediata.',
+    internalTier: 'Starter + Core do Offer Triangle',
+    price: 397,
+    description: 'Seu WhatsApp comercial organizado e sua agenda online no ar: o cliente marca sozinho, sem você responder nada.',
     isPopular: false,
     features: [
-      'Página simples e bonita com seus serviços, preços e botão de WhatsApp',
-      'Perfil comercial do WhatsApp configurado com catálogo e mensagem de saudação',
-      'Cartão digital com seus links principais',
-      'Seu negócio encontrável no Google quando procurarem pelo seu serviço',
+      'Perfil comercial do WhatsApp configurado com seus horários, endereço e descrição',
+      'Catálogo com seus serviços e preços dentro do próprio WhatsApp',
+      'Mensagem de saudação e de ausência automáticas',
+      'Respostas prontas para as perguntas que você mais recebe',
+      'Agenda online: o cliente escolhe sozinho um horário livre, por um link',
+      'O compromisso entra na agenda dele e na sua, com confirmação por e-mail',
       'Tudo criado no seu nome, com os seus acessos'
     ],
-    monthlyCovers: [
-      'Hospedagem da sua página paga por mim',
-      'Alterações de texto, preço e serviço quando você pedir',
-      'Conserto sem custo se alguma coisa parar de funcionar'
-    ],
+    supportPeriod: '10 dias',
     ctaText: 'Quero o Essencial',
-    whatsappMessage: 'Olá Gustavo! Quero contratar o plano Essencial para organizar meu WhatsApp e minha página.'
+    whatsappMessage: 'Olá Gustavo! Quero o plano Essencial (R$ 397): WhatsApp comercial e agenda online.'
   },
   {
     id: 'plan-completo',
     name: 'Completo',
-    setupPrice: 999,
-    monthlyPrice: 149,
-    description: 'Seu cliente agenda sozinho por um link 24h por dia e recebe lembretes automáticos antes do horário.',
+    internalTier: 'Automação de processos comerciais',
+    price: 897,
+    description: 'Tudo do Essencial e, depois de olhar seu atendimento de perto, eu faço as tarefas repetitivas acontecerem sozinhas.',
+    highlight: 'De nada adianta aparecer mais e atrair mais gente se, na hora que o cliente chega, o seu atendimento trava.',
     isPopular: true,
     features: [
       'Tudo do plano Essencial',
-      'Seu cliente escolhe o horário sozinho por um link — sem você trocar mensagens',
-      'Lembrete automático enviado por WhatsApp antes do horário para reduzir faltas',
-      'Formulário simples onde o cliente já te manda todas as informações necessárias',
-      'Uma tela só onde você vê em que pé está cada atendimento',
-      'Tudo criado no seu nome, com os seus acessos'
+      'Uma conversa em que a gente desenha junto o caminho do cliente, do primeiro "oi" até o pagamento',
+      'A gente marca nesse caminho onde você perde tempo e onde o cliente desiste',
+      'Eu faço essas tarefas repetitivas acontecerem sozinhas — por exemplo: mandar o orçamento, cobrar quem ficou de responder, retomar quem sumiu no meio',
+      'O que vai ser automatizado é definido nessa conversa, porque depende do seu negócio',
+      'No fim você recebe por escrito o que passou a ser automático e o que continua na sua mão'
     ],
-    monthlyCovers: [
-      'Tudo do acompanhamento Essencial',
-      'Acompanho se os lembretes estão saindo e conserto se falhar',
-      'Resposta em até 4 horas úteis, direto comigo no WhatsApp'
-    ],
+    supportPeriod: '30 dias',
     ctaText: 'Quero o Completo',
-    whatsappMessage: 'Olá Gustavo! Vi o plano Completo e quero meu agendamento automático rodando em 3 dias úteis!'
+    whatsappMessage: 'Olá Gustavo! Vi o plano Completo (R$ 897) e quero automatizar as tarefas repetidas do meu atendimento.'
   },
   {
-    id: 'plan-sob-medida',
-    name: 'Sob Medida',
-    setupPrice: 2499,
-    monthlyPrice: 249,
-    description: 'Tarefas repetitivas acontecendo sozinhas: orçamentos, cobranças e relatórios sem você digitar nada.',
+    id: 'plan-equipe',
+    name: 'Equipe',
+    internalTier: 'Premium',
+    price: 1497,
+    description: 'Para quem tem funcionários: além de montar e automatizar tudo, eu treino a sua equipe para usar no dia a dia.',
     isPopular: false,
     features: [
       'Tudo do plano Completo',
-      'Sistema feito para o seu jeito exato de trabalhar',
-      'Envio automático de orçamentos e lembretes de cobrança',
-      'Recebimento por Pix e cartão ligado direto no seu atendimento',
+      'Treinamento da sua equipe para usar o sistema no dia a dia',
+      'Material de apoio simples para a equipe consultar depois',
       'Tudo criado no seu nome, com os seus acessos'
     ],
-    monthlyCovers: [
-      'Tudo do acompanhamento Completo',
-      'Ajustes contínuos conforme seu negócio muda',
-      'Conversa de acompanhamento uma vez por mês'
-    ],
-    ctaText: 'Conversar sobre o Sob Medida',
-    whatsappMessage: 'Olá Gustavo! Tenho um projeto sob medida e gostaria de fazer uma análise personalizada.'
+    supportPeriod: '90 dias',
+    ctaText: 'Quero o Equipe',
+    whatsappMessage: 'Olá Gustavo! Tenho equipe e quero o plano Equipe (R$ 1.497), com treinamento incluso.'
   }
 ];
-
-/** Porta de entrada barata para quem não compra recorrência no primeiro contato. */
-export const INITIAL_ENTRY_OFFER: EntryOffer = {
-  name: 'Arrumo seu WhatsApp Business em 1 dia',
-  price: 249,
-  deliveryTime: '1 dia útil',
-  description:
-    'Serviço avulso, pagamento único, sem mensalidade e sem compromisso. É a forma mais barata de me testar antes de contratar qualquer plano.',
-  includes: [
-    'Perfil comercial configurado com seus horários, endereço e descrição',
-    'Catálogo com seus serviços e preços dentro do WhatsApp',
-    'Mensagem de saudação e de ausência automáticas',
-    'Até 10 respostas rápidas para as perguntas que você mais recebe',
-    'Explicação em vídeo curto de como mexer em tudo depois'
-  ],
-  whatsappMessage:
-    'Olá Gustavo! Quero o serviço avulso de arrumar meu WhatsApp Business em 1 dia (R$ 249).'
-};
 
 // Honest demonstration prototypes instead of fake success statistics
 export const INITIAL_CASE_STUDIES: CaseStudy[] = [
@@ -99,13 +89,13 @@ export const INITIAL_CASE_STUDIES: CaseStudy[] = [
     id: 'case-1',
     title: 'Como Fica o Agendamento Automático na Prática',
     clientCategory: 'Demonstração de Protótipo',
-    timeframe: 'Prazo de 3 dias úteis em contrato',
+    timeframe: 'Prazo de 7 dias em contrato',
     summary: 'Demonstração prática de como um profissional autônomo elimina a troca de mensagens repetitivas para marcar horários.',
     before: {
       status: 'Antes: Agendamento Manual Cansativo',
       points: [
         'Troca de até 8 mensagens no WhatsApp para achar um dia vago',
-        'Cliente desiste ou esquece do horário por falta de lembrete',
+        'Cliente esquece do horário porque não ficou marcado em lugar nenhum',
         'Falta de organização entre mensagens pessoais e de trabalho'
       ]
     },
@@ -114,7 +104,7 @@ export const INITIAL_CASE_STUDIES: CaseStudy[] = [
       points: [
         'WhatsApp comercial com mensagem automática e catálogo de serviços',
         'Link de agendamento onde o próprio cliente escolhe o horário livre na sua agenda',
-        'Lembrete automático enviado antes do compromisso para evitar faltas'
+        'O compromisso entra na agenda do próprio cliente, que avisa ele sozinho'
       ]
     },
     metric: '24h',
@@ -125,26 +115,26 @@ export const INITIAL_CASE_STUDIES: CaseStudy[] = [
     id: 'case-2',
     title: 'Como Fica a Qualificação e Envio de Orçamentos',
     clientCategory: 'Demonstração de Protótipo',
-    timeframe: 'Prazo de 3 dias úteis em contrato',
+    timeframe: 'Prazo de 7 dias em contrato',
     summary: 'Demonstração de como um formulário simples já entrega o cliente qualificado e pronto para fechar.',
     before: {
       status: 'Antes: Perguntas Repetitivas',
       points: [
         'Mensagens soltas do tipo "quanto custa?" sem nenhum detalhe do projeto',
         'Horas perdidas explicando informações básicas uma a uma',
-        'Falta de registro centralizado dos clientes atendidos'
+        'Você precisa reler a conversa toda para lembrar o que o cliente pediu'
       ]
     },
     after: {
-      status: 'Depois: Informações Prontas no Seu Painel',
+      status: 'Depois: Informações Prontas Antes de Você Responder',
       points: [
         'Formulário simples que coleta o que você precisa saber em 1 minuto',
-        'Envio automático dos dados direto para o seu WhatsApp e painel de controle',
+        'As informações chegam organizadas direto no seu WhatsApp',
         'Organização clara do status de cada atendimento'
       ]
     },
-    metric: '1 Tela',
-    metricLabel: 'Para Controlar Tudo',
+    metric: '1 min',
+    metricLabel: 'Para o Cliente Preencher',
     badgeText: 'Demonstração #2'
   }
 ];
@@ -152,35 +142,35 @@ export const INITIAL_CASE_STUDIES: CaseStudy[] = [
 export const INITIAL_FAQS: FAQItem[] = [
   {
     question: 'E se eu não entender nada de tecnologia?',
-    answer: 'É exatamente para isso que existo! Você não precisa aprender nada complicado nem entender de código. Eu entrego tudo pronto e configurado para você usar em 3 dias úteis, e te explico passo a passo como mexer.'
+    answer: 'É exatamente para isso que eu existo. Você não precisa aprender nada complicado nem entender de código. Eu entrego tudo pronto, testado e funcionando, e depois te explico como mexer em linguagem simples — sem termo técnico e quantas vezes precisar.'
   },
   {
     question: 'As contas e ferramentas ficam no meu nome?',
-    answer: 'Sim! Esta é a regra principal do meu trabalho: tudo é criado no seu próprio nome e no seu e-mail. Você é o único dono absoluto de toda a sua estrutura. Se um dia quiser parar a consultoria, tudo continua funcionando na sua mão.'
+    answer: 'Sim, e essa é a regra principal do meu trabalho: tudo é criado no seu próprio nome e no seu e-mail. Você é o dono de tudo desde o primeiro dia. Se um dia você não quiser mais falar comigo, nada para de funcionar e você não perde nada — não existe nenhuma peça presa comigo.'
   },
   {
     question: 'Você vai pedir minhas senhas pessoais do WhatsApp?',
-    answer: 'Nunca! A configuração do WhatsApp Business e do sistema de agendamento é feita com acessos seguros de integração e autorização na tela do seu próprio celular. Suas conversas e dados pessoais continuam 100% privados e protegidos.'
+    answer: 'Nunca. A configuração é feita com autorização na tela do seu próprio celular, por você. Eu não peço senha do seu WhatsApp, do seu banco nem do seu e-mail. Suas conversas e seus contatos continuam privados — eu não tenho acesso a eles.'
   },
   {
-    question: 'Se eu cancelar o acompanhamento depois de 2 meses, o que continua funcionando?',
-    answer: 'Continua funcionando praticamente tudo: seu WhatsApp comercial, seu link de agendamento, sua agenda e seus lembretes ficam de pé, porque estão nas suas próprias contas. Você só perde o meu acompanhamento — ou seja, os ajustes e a manutenção passam a ser por conta sua. A única exceção é a hospedagem da página, que hoje é paga por mim dentro da mensalidade: se você cancelar, ou assume esse custo (hoje na faixa de R$ 15 a R$ 30 por mês) ou eu te entrego os arquivos para levar para onde quiser. Não existe prazo mínimo nem multa.'
+    question: 'É pagamento único ou vou ficar preso numa mensalidade?',
+    answer: 'É pagamento único. Você paga a configuração uma vez e pronto — não existe mensalidade, não existe fidelidade e não existe cobrança recorrente. Depois da entrega, o sistema é seu e continua funcionando sem você me pagar mais nada.'
   },
   {
-    question: 'O que acontece se der algum problema após a entrega?',
-    answer: 'Eu não sumirei após a entrega. Você tem suporte direto comigo via WhatsApp por 30 dias inclusos para tirar qualquer dúvida ou solicitar ajustes, e o acompanhamento mensal (se você contratar) cobre isso de forma contínua. Se algo não funcionar como combinado, eu refaço sem nenhum custo adicional.'
+    question: 'Depois que você entregar e for embora, se der problema?',
+    answer: 'Todo plano já vem com um período de suporte incluso por WhatsApp, direto comigo: 10 dias no Essencial, 30 dias no Completo e 90 dias no Equipe, para tirar dúvida ou ajustar o que for preciso, sem custo. E se o problema for algo que eu configurei errado, eu conserto mesmo fora do prazo: o erro é meu, a conta não é sua.'
   },
   {
-    question: 'Em quanto tempo meu sistema fica pronto de verdade?',
-    answer: 'O prazo padrão é de 3 dias úteis após a nossa conversa inicial de alinhamento, contados de quando você me passar as informações que eu preciso (seus serviços, preços e horários). Esse compromisso de entrega é assumido por escrito.'
+    question: 'Em quanto tempo fica pronto de verdade?',
+    answer: 'Em até 7 dias corridos, contados de quando você me passar as informações que eu preciso (seus serviços, preços e horários). E esse prazo tem consequência: se o seu WhatsApp e a sua agenda não estiverem funcionando em 7 dias, aquela etapa não é cobrada.'
   },
   {
-    question: 'Preciso pagar ferramentas caras de terceiros além do seu serviço?',
-    answer: 'Não. Eu monto tudo em cima de ferramentas gratuitas ou de custo muito baixo: WhatsApp Business é gratuito, Google Agenda é gratuito e o agendamento online roda no plano gratuito. A hospedagem da sua página está inclusa na mensalidade enquanto você tiver acompanhamento comigo. Se em algum momento o seu caso exigir uma ferramenta paga, eu te aviso o valor antes de contratar — nunca aparece uma cobrança que você não aprovou.'
+    question: 'Preciso pagar ferramentas caras além do seu serviço?',
+    answer: 'Não. Eu monto tudo em cima de ferramentas gratuitas ou de custo muito baixo: o WhatsApp Business é gratuito, o Google Agenda é gratuito e o agendamento online roda no plano gratuito. Se em algum momento o seu caso exigir uma ferramenta paga, eu te falo o valor antes — nunca aparece cobrança que você não aprovou.'
   },
   {
-    question: 'E se eu não gostar do resultado final?',
-    answer: 'O trabalho só é considerado concluído quando você testar e aprovar a solução rodando na prática. Se o sistema não funcionar como combinado no nosso diagnóstico, eu refaço ou devolvo o seu investimento.'
+    question: 'E se eu não gostar do resultado?',
+    answer: 'O trabalho só é dado por concluído quando você testar e aprovar funcionando na prática. Se não ficar como combinamos, eu refaço. Se ainda assim não funcionar, você não paga por aquela etapa.'
   }
 ];
 
@@ -201,8 +191,8 @@ export const INITIAL_DIAGNOSTIC_QUESTIONS: DiagnosticQuestion[] = [
     question: 'Como você marca reuniões ou consultas com seus clientes?',
     options: [
       { text: 'Trocamos várias mensagens negociando dias e horários vagos', score: 10, recommendation: 'Implantação de link de agendamento automático integrado à sua agenda.' },
-      { text: 'Mando os horários por texto e anoto num bloco de notas ou papel', score: 20, recommendation: 'Sincronização do Google Agenda com aviso automático anti-faltas.' },
-      { text: 'O cliente já escolhe o horário sozinho por um link online', score: 30, recommendation: 'Configurar lembretes automáticos por WhatsApp antes do horário.' }
+      { text: 'Mando os horários por texto e anoto num bloco de notas ou papel', score: 20, recommendation: 'Agenda online sincronizada, com o compromisso entrando direto na agenda do cliente.' },
+      { text: 'O cliente já escolhe o horário sozinho por um link online', score: 30, recommendation: 'Automatizar o que vem depois do agendamento: confirmação, orçamento e retomada de quem some.' }
     ]
   },
   {
@@ -220,7 +210,7 @@ export const INITIAL_DIAGNOSTIC_QUESTIONS: DiagnosticQuestion[] = [
     category: 'Rotina & Automações',
     question: 'Quanto do seu tempo diário é gasto em tarefas repetitivas?',
     options: [
-      { text: 'Mais de 2 horas por dia enviando lembretes, arquivos e cobranças na mão', score: 10, recommendation: 'Automação de lembretes e envios de mensagens repetitivas.' },
+      { text: 'Mais de 2 horas por dia enviando orçamentos, arquivos e cobranças na mão', score: 10, recommendation: 'Automação das tarefas repetitivas do seu atendimento, definidas numa conversa de diagnóstico.' },
       { text: 'Faço algumas tarefas no automático mas as ferramentas não se conversam', score: 20, recommendation: 'Conectar seu WhatsApp à sua agenda e cadastro de clientes.' },
       { text: 'Quase todas as tarefas de rotina já acontecem sozinhas', score: 30, recommendation: 'Aprimorar o acompanhamento pós-venda para novos agendamentos.' }
     ]
@@ -244,7 +234,8 @@ export const INITIAL_DIAGNOSTIC_QUESTIONS: DiagnosticQuestion[] = [
  * Preencha aqui ou pelo Painel Admin.
  */
 export const INITIAL_SETTINGS: SiteSettings = {
-  whatsappNumber: '',
+  // DDI 55 + DDD 11 + número. Só dígitos: é assim que o wa.me espera.
+  whatsappNumber: '5511921600939',
   whatsappWelcomeMessage: 'Olá Gustavo! Vi seu site e gostaria de fazer o diagnóstico gratuito do meu atendimento.',
   contactEmail: '',
   city: '',
@@ -255,15 +246,14 @@ export const INITIAL_SETTINGS: SiteSettings = {
   meiCnpj: '',
   meiStatus: '',
   meiRazaoSocial: '',
-  minimumContractMonths: 0,
   heroHeadline: 'Sua tecnologia funcionando — sem você precisar entender de tecnologia',
-  heroSubheadline: 'Eu configuro seu WhatsApp, sua agenda online e seus lembretes automáticos em 3 dias úteis. Tudo pronto para usar. Se não funcionar como combinado, eu refaço.'
+  heroSubheadline: 'Eu organizo seu WhatsApp comercial e coloco sua agenda online no ar em 7 dias. Tudo pronto para usar. Se não funcionar como combinado, a etapa não é cobrada.'
 };
 
 export const INITIAL_LEADS: Lead[] = [];
 
-// v3: preços passaram a ser setupPrice + monthlyPrice, e settings ganhou
-// contactEmail/city/CNPJ opcionais. Dados v2 em cache têm outro formato.
+// v4: preços passaram a ser pagamento único (Offer Triangle). Planos em
+// cache das versões anteriores têm outro formato e quebrariam a vitrine.
 const STORAGE_KEYS = {
   PLANS: 'gr_plans_v3',
   ENTRY_OFFER: 'gr_entry_offer_v3',
@@ -368,22 +358,59 @@ export class AppStore {
     return cached ? JSON.parse(cached) : INITIAL_LEADS;
   }
 
-  static addLead(lead: Omit<Lead, 'id' | 'createdAt' | 'status'>): Lead {
+  /**
+   * Guarda o lead localmente e, se o Supabase estiver configurado, também lá.
+   *
+   * Devolve `savedRemotely` para o formulário saber se o contato realmente
+   * saiu do navegador. Sem isso o site anunciaria "enviado com sucesso" para
+   * um lead que ficou preso no celular do visitante — e você nunca saberia.
+   */
+  static async addLead(
+    lead: Omit<Lead, 'id' | 'createdAt' | 'status'>
+  ): Promise<{ lead: Lead; savedRemotely: boolean }> {
     const newLead: Lead = {
       ...lead,
       id: 'lead-' + Date.now(),
       status: 'new',
       createdAt: new Date().toISOString()
     };
-    const leads = this.getLeads();
-    const updated = [newLead, ...leads];
+
+    const updated = [newLead, ...this.getLeads()];
     localStorage.setItem(STORAGE_KEYS.LEADS, JSON.stringify(updated));
 
     const client = supabase;
-    if (isSupabaseConfigured && client) {
-      client.from('leads').insert(newLead);
+    if (!isSupabaseConfigured || !client) {
+      return { lead: newLead, savedRemotely: false };
     }
-    return newLead;
+
+    // A tabela no Supabase usa snake_case (convenção do Postgres) e o app
+    // usa camelCase — sem esta tradução o insert falha com PGRST204.
+    // `id` e `created_at` não têm valor automático na tabela, então quem
+    // gera é o app.
+    const row = {
+      id: newLead.id,
+      created_at: newLead.createdAt,
+      name: newLead.name,
+      email: newLead.email,
+      whatsapp: newLead.whatsapp,
+      business_type: newLead.businessType,
+      source: newLead.source,
+      message: newLead.message ?? null,
+      status: newLead.status,
+      diagnostic_score: newLead.diagnosticScore ?? null,
+      diagnostic_details: newLead.diagnosticDetails ?? null
+    };
+
+    try {
+      const { error } = await client.from('leads').insert(row);
+      if (error && import.meta.env.DEV) {
+        console.error('[Supabase] insert em "leads" falhou:', error.code, error.message, error.details);
+      }
+      return { lead: newLead, savedRemotely: !error };
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('[Supabase] exceção no insert:', err);
+      return { lead: newLead, savedRemotely: false };
+    }
   }
 
   static updateLeadStatus(id: string, status: Lead['status']): void {

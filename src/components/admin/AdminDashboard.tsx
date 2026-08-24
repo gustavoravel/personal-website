@@ -693,21 +693,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 />
               </div>
 
-              <div>
-                <label htmlFor="set-min" className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
-                  Prazo mínimo de contrato, em meses (0 = sem prazo mínimo)
-                </label>
-                <input
-                  id="set-min"
-                  type="number"
-                  min={0}
-                  value={siteSettingsForm.minimumContractMonths}
-                  onChange={(e) =>
-                    setSiteSettingsForm({ ...siteSettingsForm, minimumContractMonths: Number(e.target.value) })
-                  }
-                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface"
-                />
-              </div>
             </div>
           </div>
         </form>

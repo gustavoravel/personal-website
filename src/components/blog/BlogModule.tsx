@@ -188,7 +188,7 @@ export const BlogModule: React.FC<BlogModuleProps> = ({ posts, settings, onBackT
           <div className="bg-surface-container-high p-6 rounded-2xl border border-primary/30 space-y-3 pt-6">
             <h3 className="text-lg font-bold text-on-surface">Quer implementar essa solução no seu próprio negócio?</h3>
             <p className="text-xs text-on-surface-variant">
-              Fale diretamente com Gustavo Ravel e receba o pacote configurado em até 3 dias.
+              Fale diretamente com Gustavo Ravel e receba o pacote configurado em até 7 dias.
             </p>
             <button
               onClick={() => {

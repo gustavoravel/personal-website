@@ -1,26 +1,18 @@
 export interface Plan {
   id: string;
   name: string;
-  /** Valor da implantação, cobrado uma única vez. */
-  setupPrice: number;
-  /** Valor do acompanhamento mensal. 0 = sem mensalidade. */
-  monthlyPrice: number;
+  /** Nome interno do tier no Offer Triangle (Starter / Core / Premium). */
+  internalTier: string;
+  /** Valor da configuração. Pagamento único — não há mensalidade. */
+  price: number;
   description: string;
+  /** Frase de posicionamento destacada no card. Opcional. */
+  highlight?: string;
   isPopular?: boolean;
   features: string[];
-  /** O que a mensalidade cobre todo mês (vazio se não houver mensalidade). */
-  monthlyCovers: string[];
+  /** Período de suporte incluso por WhatsApp. Vazio = não incluso. */
+  supportPeriod: string;
   ctaText: string;
-  whatsappMessage: string;
-}
-
-/** Oferta de entrada barata: serviço avulso, sem mensalidade. */
-export interface EntryOffer {
-  name: string;
-  price: number;
-  deliveryTime: string;
-  description: string;
-  includes: string[];
   whatsappMessage: string;
 }
 
@@ -101,8 +93,6 @@ export interface SiteSettings {
   meiCnpj: string;
   meiStatus: string;
   meiRazaoSocial: string;
-  /** Prazo mínimo de contrato em meses. 0 = sem prazo mínimo. */
-  minimumContractMonths: number;
   heroHeadline: string;
   heroSubheadline: string;
 }

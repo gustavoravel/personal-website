@@ -1,11 +1,10 @@
 import React from 'react';
-import { Plan, EntryOffer, SiteSettings } from '../types';
+import { Plan, SiteSettings } from '../types';
 import { openWhatsApp } from '../lib/contact';
-import { CheckCircle, Sparkles, MessageCircle, Tag, Clock } from 'lucide-react';
+import { CheckCircle, Sparkles, MessageCircle, Tag, LifeBuoy } from 'lucide-react';
 
 interface OfferTriangleVitrineProps {
   plans: Plan[];
-  entryOffer: EntryOffer;
   settings: SiteSettings;
 }
 
@@ -15,7 +14,7 @@ interface OfferTriangleVitrineProps {
  *   ele compra parar de trocar oito mensagens para marcar um horário);
  * - nada de "Starter/Core/Premium" nem de vocabulário de framework interno.
  */
-export const OfferTriangleVitrine: React.FC<OfferTriangleVitrineProps> = ({ plans, entryOffer, settings }) => {
+export const OfferTriangleVitrine: React.FC<OfferTriangleVitrineProps> = ({ plans, settings }) => {
   const money = (value: number) => `R$ ${value.toLocaleString('pt-BR')}`;
 
   return (
@@ -29,56 +28,12 @@ export const OfferTriangleVitrine: React.FC<OfferTriangleVitrineProps> = ({ plan
           Escolha o tamanho que faz sentido <span className="text-primary">para o seu negócio hoje</span>
         </h2>
         <p className="text-on-surface-variant text-lg leading-relaxed">
-          Você paga a montagem uma vez. O acompanhamento mensal é opcional, começa barato e pode ser cancelado quando quiser.
+          Você paga uma vez pela configuração e o sistema é seu. Não existe mensalidade, não existe fidelidade
+          e tudo fica pronto em até 7 dias.
         </p>
       </div>
 
-      {/* Porta de entrada barata: quem desconfia compra um teste pequeno,
-          não uma recorrência de R$ 999 no primeiro contato. */}
-      <div className="bg-surface-container-low border-2 border-emerald-500/40 rounded-2xl p-7 md:p-9 space-y-5 max-w-4xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/25">
-              <Sparkles className="w-4 h-4" />
-              <span>Para me testar primeiro</span>
-            </div>
-            <h3 className="text-2xl font-bold text-on-surface leading-snug">{entryOffer.name}</h3>
-          </div>
-
-          <div className="text-left sm:text-right shrink-0">
-            <div className="text-4xl font-extrabold text-emerald-400">{money(entryOffer.price)}</div>
-            <div className="text-base text-on-surface-variant">pagamento único</div>
-          </div>
-        </div>
-
-        <p className="text-base md:text-lg text-on-surface-variant leading-relaxed">{entryOffer.description}</p>
-
-        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {entryOffer.includes.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-3 text-base text-on-surface">
-              <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-2">
-          <button
-            onClick={() => openWhatsApp(settings, entryOffer.whatsappMessage)}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 text-base transition-colors"
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span>Quero esse serviço avulso</span>
-          </button>
-
-          <span className="inline-flex items-center gap-2 text-base text-on-surface-variant">
-            <Clock className="w-5 h-5 text-emerald-400" />
-            <span>Entrega em {entryOffer.deliveryTime}</span>
-          </span>
-        </div>
-      </div>
-
-      {/* Planos completos */}
+      {/* Planos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
         {plans.map((plan) => (
           <div
@@ -97,34 +52,26 @@ export const OfferTriangleVitrine: React.FC<OfferTriangleVitrineProps> = ({ plan
             )}
 
             <div className="p-8 flex-grow space-y-6">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <h3 className="text-2xl font-bold text-on-surface">{plan.name}</h3>
                 <p className="text-base text-on-surface-variant leading-relaxed">{plan.description}</p>
+
+                {plan.highlight && (
+                  <p className="text-base text-on-surface leading-relaxed border-l-4 border-primary pl-4 py-1">
+                    {plan.highlight}
+                  </p>
+                )}
               </div>
 
-              {/* Implantação (uma vez) separada do acompanhamento (mensal) */}
-              <div className="border-y border-outline-variant py-5 space-y-3">
-                <div>
-                  <div className="text-base text-on-surface-variant font-semibold">Montagem, uma vez só</div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-extrabold text-primary">{money(plan.setupPrice)}</span>
-                    <span className="text-base text-on-surface-variant">à vista ou em 2x</span>
-                  </div>
+              {/* Pagamento único: sem mensalidade, sem fidelidade. */}
+              <div className="border-y border-outline-variant py-5 space-y-1">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="text-4xl font-extrabold text-primary">{money(plan.price)}</span>
+                  <span className="text-base text-on-surface-variant">uma vez só</span>
                 </div>
-
-                {plan.monthlyPrice > 0 && (
-                  <div className="pt-2 border-t border-outline-variant/60">
-                    <div className="text-base text-on-surface-variant font-semibold">
-                      Acompanhamento opcional
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xl font-bold text-on-surface">
-                        + {money(plan.monthlyPrice)}
-                      </span>
-                      <span className="text-base text-on-surface-variant">por mês, cancela quando quiser</span>
-                    </div>
-                  </div>
-                )}
+                <div className="text-base text-emerald-300 font-semibold">
+                  Sem mensalidade e sem fidelidade
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -139,19 +86,13 @@ export const OfferTriangleVitrine: React.FC<OfferTriangleVitrineProps> = ({ plan
                 </ul>
               </div>
 
-              {plan.monthlyCovers.length > 0 && plan.monthlyPrice > 0 && (
-                <div className="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant space-y-2.5">
-                  <div className="text-base font-bold text-on-surface">
-                    O que a mensalidade cobre todo mês:
+              {plan.supportPeriod && (
+                <div className="bg-surface-container-lowest p-5 rounded-xl border border-emerald-500/25 flex items-start gap-3">
+                  <LifeBuoy className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="text-base text-on-surface leading-relaxed">
+                    <strong>{plan.supportPeriod} de suporte incluso</strong> por WhatsApp, direto comigo,
+                    para tirar dúvida ou ajustar o que precisar.
                   </div>
-                  <ul className="space-y-2">
-                    {plan.monthlyCovers.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2.5 text-base text-on-surface-variant leading-relaxed">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2.5 shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
               )}
             </div>

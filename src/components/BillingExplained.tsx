@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import { Plan, SiteSettings } from '../types';
 import { openWhatsApp } from '../lib/contact';
-import {
-  Wallet,
-  CalendarClock,
-  Unlock,
-  KeyRound,
-  Copy,
-  Check,
-  Building2,
-  MessageCircle
-} from 'lucide-react';
+import { Wallet, BadgeCheck, Unlock, KeyRound, Copy, Check, Building2, MessageCircle } from 'lucide-react';
 
 interface BillingExplainedProps {
   plans: Plan[];
@@ -18,19 +9,16 @@ interface BillingExplainedProps {
 }
 
 /**
- * Responde, em uma tela, as perguntas que travam a venda:
- * é mensalidade para sempre? tem prazo mínimo? o que a mensalidade cobre?
- * o que continua meu se eu cancelar? as ferramentas estão inclusas?
+ * Responde, em uma tela, o que trava a venda de quem já foi enganado:
+ * é mensalidade? tem fidelidade? o que acontece se não funcionar?
+ * o que continua meu? as ferramentas estão inclusas?
+ *
+ * Modelo conforme o Offer Triangle: pagamento único por configuração.
  */
 export const BillingExplained: React.FC<BillingExplainedProps> = ({ plans, settings }) => {
   const [copied, setCopied] = useState(false);
 
-  const cheapestSetup = plans.length
-    ? Math.min(...plans.map((p) => p.setupPrice))
-    : 0;
-  const cheapestMonthly = plans.length
-    ? Math.min(...plans.filter((p) => p.monthlyPrice > 0).map((p) => p.monthlyPrice))
-    : 0;
+  const cheapest = plans.length ? Math.min(...plans.map((p) => p.price)) : 0;
 
   const handleCopyPix = async () => {
     if (!settings.pixKey) return;
@@ -42,30 +30,29 @@ export const BillingExplained: React.FC<BillingExplainedProps> = ({ plans, setti
   const cards = [
     {
       icon: Wallet,
-      title: 'Você paga a montagem uma vez só',
-      body: `A implantação é o valor de montar tudo: a partir de R$ ${cheapestSetup.toLocaleString('pt-BR')}, cobrado uma única vez. Não é mensalidade e não volta no mês seguinte.`,
+      title: 'Você paga uma vez só',
+      body: `A configuração começa em R$ ${cheapest.toLocaleString('pt-BR')} e é cobrada uma única vez. Não é mensalidade: não volta no mês seguinte, não renova sozinha e não aparece no seu cartão todo mês.`,
       accent: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
     },
     {
-      icon: CalendarClock,
-      title: 'A mensalidade é opcional — e barata',
-      body: `O acompanhamento começa em R$ ${cheapestMonthly.toLocaleString('pt-BR')} por mês e cobre hospedagem da sua página, alterações quando você pedir e consertos sem custo. Se você preferir só a montagem, sem acompanhamento, também dá.`,
-      accent: 'text-primary bg-primary/10 border-primary/30'
-    },
-    {
       icon: Unlock,
-      title: 'Sem prazo mínimo e sem multa',
+      title: 'Sem fidelidade e sem contrato longo',
       body:
-        settings.minimumContractMonths > 0
-          ? `O acompanhamento tem prazo mínimo de ${settings.minimumContractMonths} meses. Depois disso você cancela quando quiser, avisando com 30 dias.`
-          : 'Não existe fidelidade, prazo mínimo nem multa de cancelamento. Você avisa que quer parar e para no fim do mês — sem discussão e sem taxa.',
+        'Não existe prazo mínimo, multa de cancelamento nem plano para cancelar. É um serviço com começo, meio e fim: eu configuro, você aprova, acabou. Se quiser mais alguma coisa depois, você me chama — e só aí a gente combina.',
       accent: 'text-sky-400 bg-sky-500/10 border-sky-500/30'
     },
     {
-      icon: KeyRound,
-      title: 'Se você cancelar, o sistema continua seu',
+      icon: BadgeCheck,
+      title: 'Não funcionou em 7 dias? A etapa não é cobrada',
       body:
-        'Tudo é criado no seu nome e no seu e-mail: WhatsApp, agenda, link de agendamento e domínio. Cancelando o acompanhamento, isso tudo continua funcionando na sua mão. Você só passa a cuidar dos ajustes por conta própria.',
+        'Esse é o compromisso que eu assumo por escrito: seu WhatsApp e sua agenda funcionando em até 7 dias corridos. Se eu não entregar isso no prazo, aquela etapa sai da sua conta.',
+      accent: 'text-primary bg-primary/10 border-primary/30'
+    },
+    {
+      icon: KeyRound,
+      title: 'O que foi montado é seu, para sempre',
+      body:
+        'Tudo é criado no seu nome e no seu e-mail: WhatsApp, agenda e link de agendamento. Depois da entrega, continua funcionando sem depender de mim e sem você me pagar mais nada. Você não fica refém.',
       accent: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
     }
   ];
@@ -81,7 +68,8 @@ export const BillingExplained: React.FC<BillingExplainedProps> = ({ plans, setti
           Sem pegadinha na conta: <span className="text-primary">o que você paga e quando</span>
         </h2>
         <p className="text-on-surface-variant text-lg leading-relaxed">
-          Se depois de ler esta parte ainda ficar qualquer dúvida sobre valores, me pergunte direto. Preço escondido é o começo de toda enrolação.
+          Se depois de ler esta parte ainda ficar qualquer dúvida sobre valores, me pergunte direto.
+          Preço escondido é o começo de toda enrolação.
         </p>
       </div>
 
@@ -89,10 +77,7 @@ export const BillingExplained: React.FC<BillingExplainedProps> = ({ plans, setti
         {cards.map((card, idx) => {
           const IconComp = card.icon;
           return (
-            <div
-              key={idx}
-              className="bg-surface-container p-7 rounded-2xl border border-outline-variant flex items-start gap-4"
-            >
+            <div key={idx} className="bg-surface-container p-7 rounded-2xl border border-outline-variant flex items-start gap-4">
               <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${card.accent}`}>
                 <IconComp className="w-5 h-5" />
               </div>
@@ -105,22 +90,22 @@ export const BillingExplained: React.FC<BillingExplainedProps> = ({ plans, setti
         })}
       </div>
 
-      {/* Comparativo com a alternativa que o cliente já conhece */}
       <div className="bg-surface-container-low p-7 rounded-2xl border border-outline-variant max-w-3xl mx-auto space-y-3">
         <h3 className="text-lg font-bold text-on-surface">Para comparar com o que você já conhece</h3>
         <p className="text-base text-on-surface-variant leading-relaxed">
-          Uma recepcionista para atender e marcar horários custa, com encargos, mais de R$ 2.000 por mês. Um anúncio patrocinado que só aparece enquanto você paga consome de R$ 300 a R$ 600 por mês e não organiza nada.
-          O agendamento automático é montado uma vez e trabalha todo dia, inclusive de madrugada e no fim de semana.
+          Uma recepcionista para atender e marcar horários custa, com encargos, mais de R$ 2.000 <strong>por mês</strong>.
+          Um anúncio patrocinado consome de R$ 300 a R$ 600 <strong>por mês</strong> e para de aparecer no dia em que você para de pagar.
+          Aqui você paga uma vez e o atendimento continua rodando todo dia — inclusive de madrugada e no fim de semana.
         </p>
       </div>
 
-      {/* Formas de pagamento — só exibe dado que existe de verdade */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-surface-container p-7 rounded-2xl border border-outline-variant space-y-4">
           <h3 className="text-lg font-bold text-on-surface">Formas de pagamento</h3>
           <p className="text-base text-on-surface-variant leading-relaxed">
-            A implantação é dividida em <strong className="text-on-surface">metade na aprovação e metade na entrega testada</strong> —
-            ou seja, você só paga o restante depois de ver funcionando. Aceito Pix e cartão, e emito recibo de todos os valores.
+            <strong className="text-on-surface">Metade na aprovação e metade só depois de funcionar</strong> —
+            você testa a entrega antes de pagar o restante. E se não estiver funcionando em 7 dias, aquela etapa
+            não é cobrada. Aceito Pix e cartão, com recibo de todos os valores.
           </p>
 
           {settings.pixKey ? (
@@ -156,7 +141,8 @@ export const BillingExplained: React.FC<BillingExplainedProps> = ({ plans, setti
           </div>
 
           <p className="text-base text-on-surface-variant leading-relaxed">
-            Todo serviço tem um contrato curto, em português claro, com o prazo de entrega e a regra de garantia escritos. Você lê antes de pagar qualquer coisa.
+            Todo serviço tem um contrato curto, em português claro, com o que será entregue, o prazo de 7 dias
+            e a regra de garantia escritos. Você lê antes de pagar qualquer coisa.
           </p>
 
           {settings.meiCnpj ? (
@@ -182,7 +168,7 @@ export const BillingExplained: React.FC<BillingExplainedProps> = ({ plans, setti
 
       <div className="text-center">
         <button
-          onClick={() => openWhatsApp(settings, 'Olá Gustavo! Tenho uma dúvida sobre os valores e a forma de cobrança.')}
+          onClick={() => openWhatsApp(settings, 'Olá Gustavo! Tenho uma dúvida sobre os valores e a forma de pagamento.')}
           className="inline-flex items-center gap-2 text-primary hover:underline font-semibold text-base"
         >
           <MessageCircle className="w-5 h-5" />
