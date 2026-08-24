@@ -69,10 +69,9 @@ export const PlansEditor: React.FC<PlansEditorProps> = ({
       ...plan,
       name: plan.name.trim() || 'Plano',
       description: plan.description.trim(),
-      setupPrice: Number.isFinite(plan.setupPrice) ? Math.max(0, plan.setupPrice) : 0,
-      monthlyPrice: Number.isFinite(plan.monthlyPrice) ? Math.max(0, plan.monthlyPrice) : 0,
+      price: Number.isFinite(plan.price) ? Math.max(0, plan.price) : 0,
       features: cleanList(plan.features),
-      monthlyCovers: cleanList(plan.monthlyCovers),
+      supportPeriod: plan.supportPeriod.trim(),
       ctaText: plan.ctaText.trim() || 'Quero este plano',
       whatsappMessage: plan.whatsappMessage.trim(),
     }));
@@ -98,7 +97,7 @@ export const PlansEditor: React.FC<PlansEditorProps> = ({
     );
     if (!ok) return;
     persist(
-      INITIAL_PLANS.map((plan) => ({ ...plan, features: [...plan.features], monthlyCovers: [...plan.monthlyCovers] })),
+      INITIAL_PLANS.map((plan) => ({ ...plan, features: [...plan.features] })),
       {
         ...INITIAL_ENTRY_OFFER,
         includes: [...INITIAL_ENTRY_OFFER.includes],
@@ -289,22 +288,24 @@ export const PlansEditor: React.FC<PlansEditorProps> = ({
                     id={`setup-${plan.id}`}
                     type="number"
                     min={0}
-                    value={plan.setupPrice}
-                    onChange={(e) => updatePlan(plan.id, { setupPrice: Number(e.target.value) || 0 })}
+                    value={plan.price}
+                    onChange={(e) => updatePlan(plan.id, { price: Number(e.target.value) || 0 })}
                     className="w-full bg-surface-container-high p-3 rounded-lg border border-white/10 text-lg font-bold text-primary focus:outline-none focus:border-primary"
                   />
                 </div>
 
+                {/* Os planos são pagamento único; o que varia entre eles é o
+                    tempo de suporte incluso. O campo de mensalidade que ficava
+                    aqui não existe mais no modelo de preços. */}
                 <div>
-                  <label htmlFor={`monthly-${plan.id}`} className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
-                    Acompanhamento mensal (R$ · 0 = sem)
+                  <label htmlFor={`support-${plan.id}`} className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
+                    Suporte incluso (ex.: 30 dias)
                   </label>
                   <input
-                    id={`monthly-${plan.id}`}
-                    type="number"
-                    min={0}
-                    value={plan.monthlyPrice}
-                    onChange={(e) => updatePlan(plan.id, { monthlyPrice: Number(e.target.value) || 0 })}
+                    id={`support-${plan.id}`}
+                    type="text"
+                    value={plan.supportPeriod}
+                    onChange={(e) => updatePlan(plan.id, { supportPeriod: e.target.value })}
                     className="w-full bg-surface-container-high p-3 rounded-lg border border-white/10 text-lg font-bold text-on-surface focus:outline-none focus:border-primary"
                   />
                 </div>
@@ -319,19 +320,6 @@ export const PlansEditor: React.FC<PlansEditorProps> = ({
                   rows={6}
                   value={listToLines(plan.features)}
                   onChange={(e) => updatePlan(plan.id, { features: linesToList(e.target.value) })}
-                  className="w-full bg-surface-container-high p-3 rounded-lg border border-white/10 text-sm text-on-surface focus:outline-none focus:border-primary resize-y font-mono"
-                />
-              </div>
-
-              <div>
-                <label htmlFor={`covers-${plan.id}`} className="block text-xs font-bold text-on-surface-variant uppercase mb-1">
-                  O que a mensalidade cobre (um por linha)
-                </label>
-                <textarea
-                  id={`covers-${plan.id}`}
-                  rows={4}
-                  value={listToLines(plan.monthlyCovers)}
-                  onChange={(e) => updatePlan(plan.id, { monthlyCovers: linesToList(e.target.value) })}
                   className="w-full bg-surface-container-high p-3 rounded-lg border border-white/10 text-sm text-on-surface focus:outline-none focus:border-primary resize-y font-mono"
                 />
               </div>

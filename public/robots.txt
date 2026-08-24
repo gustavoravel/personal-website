@@ -1,0 +1,8 @@
+# Regras para os robôs dos buscadores.
+User-agent: *
+Allow: /
+
+# O painel não tem conteúdo para busca e não deve aparecer em resultado nenhum.
+Disallow: /admin
+
+Sitemap: https://gustavoravel.com.br/sitemap.xml

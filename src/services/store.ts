@@ -1,4 +1,4 @@
-import { Plan, CaseStudy, DiagnosticQuestion, BlogPost, FAQItem, Lead, SiteSettings } from '../types';
+import { Plan, CaseStudy, DiagnosticQuestion, BlogPost, EntryOffer, FAQItem, Lead, SiteSettings } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 /**
@@ -250,6 +250,26 @@ export const INITIAL_SETTINGS: SiteSettings = {
   heroSubheadline: 'Eu organizo seu WhatsApp comercial e coloco sua agenda online no ar em 7 dias. Tudo pronto para usar. Se não funcionar como combinado, a etapa não é cobrada.'
 };
 
+/**
+ * Oferta de entrada: o teste pequeno que o comprador desconfiado aceita antes
+ * de fechar um plano. Preço e escopo ficam editáveis no admin.
+ */
+export const INITIAL_ENTRY_OFFER: EntryOffer = {
+  name: 'Diagnóstico + WhatsApp comercial no ar',
+  price: 197,
+  deliveryTime: '3 dias',
+  description:
+    'Um primeiro passo pequeno: eu olho seu atendimento de perto e deixo seu WhatsApp comercial organizado, para você ver como é trabalhar comigo antes de contratar um plano.',
+  includes: [
+    'Conversa de 30 minutos sobre como o cliente chega até você hoje',
+    'Perfil comercial do WhatsApp configurado com horários e descrição',
+    'Mensagem de saudação e de ausência automáticas',
+    'Lista por escrito do que dá para melhorar em seguida',
+  ],
+  whatsappMessage:
+    'Olá Gustavo! Quero começar pelo diagnóstico com o WhatsApp comercial configurado.',
+};
+
 export const INITIAL_LEADS: Lead[] = [];
 
 // v4: preços passaram a ser pagamento único (Offer Triangle). Planos em
@@ -271,15 +291,19 @@ export class AppStore {
     try {
       const parsed = JSON.parse(cached) as Plan[];
       if (!Array.isArray(parsed) || parsed.length === 0) return INITIAL_PLANS;
+      // O mapeamento abaixo tinha ficado no formato antigo (montagem +
+      // mensalidade) depois que os planos viraram pagamento único: ele
+      // devolvia planos sem preço, e a vitrine mostrava R$ 0.
       return parsed.map((plan) => ({
         id: plan.id || `plan-${Date.now()}`,
         name: plan.name || 'Plano',
-        setupPrice: Number(plan.setupPrice) || 0,
-        monthlyPrice: Number(plan.monthlyPrice) || 0,
+        internalTier: plan.internalTier || '',
+        price: Number(plan.price) || 0,
         description: plan.description || '',
+        highlight: plan.highlight,
         isPopular: Boolean(plan.isPopular),
         features: Array.isArray(plan.features) ? plan.features : [],
-        monthlyCovers: Array.isArray(plan.monthlyCovers) ? plan.monthlyCovers : [],
+        supportPeriod: plan.supportPeriod || '',
         ctaText: plan.ctaText || 'Quero este plano',
         whatsappMessage: plan.whatsappMessage || '',
       }));
@@ -323,19 +347,76 @@ export class AppStore {
   }
 
   // Blog Posts
+  //
+  // O navegador é a fonte imediata (localStorage) e o Supabase é a cópia
+  // compartilhada entre dispositivos. A tabela usa snake_case (convenção do
+  // Postgres) e o app usa camelCase, então cada lado tem seu mapeamento —
+  // sem isso o upsert falha silenciosamente e o artigo só existe no
+  // computador em que foi escrito.
   static getPosts(): BlogPost[] {
     const cached = localStorage.getItem(STORAGE_KEYS.POSTS);
-    return cached ? JSON.parse(cached) : [];
+    if (!cached) return [];
+
+    try {
+      const parsed = JSON.parse(cached);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map(normalizeStoredPost);
+    } catch {
+      return [];
+    }
   }
 
   static savePosts(posts: BlogPost[]): void {
     localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
+
     const client = supabase;
-    if (isSupabaseConfigured && client) {
-      posts.forEach(async (p) => {
-        await client.from('blog_posts').upsert(p);
+    if (!isSupabaseConfigured || !client) return;
+
+    void client
+      .from('blog_posts')
+      .upsert(posts.map(postToRow))
+      .then(({ error }) => {
+        if (error) console.error('Não foi possível sincronizar os artigos:', error.message);
       });
-    }
+  }
+
+  /**
+   * Busca os artigos no Supabase e funde com o que existe neste navegador.
+   *
+   * Fusão, e não substituição: um rascunho escrito aqui que ainda não subiu
+   * (tabela sem as colunas novas, sem internet, RLS recusando) sumiria da
+   * tela e do cache se a resposta remota simplesmente sobrescrevesse tudo.
+   * Em caso de conflito no mesmo id, vence a versão editada por último.
+   */
+  static async fetchPosts(): Promise<BlogPost[] | null> {
+    const client = supabase;
+    if (!isSupabaseConfigured || !client) return null;
+
+    const { data, error } = await client
+      .from('blog_posts')
+      .select('*')
+      .order('published_at', { ascending: false });
+
+    if (error || !data) return null;
+
+    const local = AppStore.getPosts();
+    const merged = new Map<string, BlogPost>();
+
+    local.forEach((post) => merged.set(post.id, post));
+
+    data.map(rowToPost).forEach((remote) => {
+      const current = merged.get(remote.id);
+      const remoteIsNewer =
+        !current || (remote.updatedAt || '') >= (current.updatedAt || '');
+      if (remoteIsNewer) merged.set(remote.id, remote);
+    });
+
+    const posts = Array.from(merged.values()).sort((a, b) =>
+      a.publishedAt < b.publishedAt ? 1 : -1
+    );
+
+    localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
+    return posts;
   }
 
   // Settings
@@ -422,4 +503,64 @@ export class AppStore {
       client.from('leads').update({ status }).eq('id', id);
     }
   }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Mapeamento dos artigos entre o app e o Postgres                     */
+/* ------------------------------------------------------------------ */
+
+type PostRow = Record<string, unknown>;
+
+/** Garante os campos novos (blocos, tags, SEO) em artigos salvos antes. */
+function normalizeStoredPost(post: BlogPost): BlogPost {
+  return {
+    ...post,
+    blocks: Array.isArray(post.blocks) ? post.blocks : undefined,
+    tags: Array.isArray(post.tags) ? post.tags : [],
+    seo: post.seo && typeof post.seo === 'object' ? post.seo : {},
+    isPublished: Boolean(post.isPublished),
+  };
+}
+
+function postToRow(post: BlogPost): PostRow {
+  return {
+    id: post.id,
+    title: post.title,
+    slug: post.slug,
+    excerpt: post.excerpt,
+    content: post.content,
+    blocks: post.blocks ?? null,
+    category: post.category,
+    tags: post.tags ?? [],
+    read_time: post.readTime,
+    published_at: post.publishedAt,
+    updated_at: post.updatedAt ?? post.publishedAt,
+    author: post.author,
+    featured_image: post.featuredImage || null,
+    featured_image_alt: post.featuredImageAlt || null,
+    seo: post.seo ?? {},
+    is_published: post.isPublished,
+  };
+}
+
+function rowToPost(row: PostRow): BlogPost {
+  return normalizeStoredPost({
+    id: String(row.id),
+    title: String(row.title ?? ''),
+    slug: String(row.slug ?? ''),
+    excerpt: String(row.excerpt ?? ''),
+    content: String(row.content ?? ''),
+    blocks: (row.blocks as BlogPost['blocks']) ?? undefined,
+    category: String(row.category ?? 'Geral'),
+    tags: (row.tags as string[]) ?? [],
+    readTime: String(row.read_time ?? '4 min'),
+    publishedAt: String(row.published_at ?? ''),
+    updatedAt: row.updated_at ? String(row.updated_at) : undefined,
+    author: String(row.author ?? 'Gustavo Ravel'),
+    featuredImage: (row.featured_image as string) ?? '',
+    featuredImageAlt: (row.featured_image_alt as string) ?? '',
+    seo: (row.seo as BlogPost['seo']) ?? {},
+    isPublished: Boolean(row.is_published),
+  });
 }

@@ -72,6 +72,20 @@ export const Footer: React.FC<FooterProps> = ({ settings, setCurrentView, onNavi
                   {link.label}
                 </button>
               ))}
+
+              {/* Link real para o blog: é por aqui que o buscador entra nos
+                  artigos a partir da home. */}
+              <a
+                href="/blog"
+                onClick={(event) => {
+                  if (event.metaKey || event.ctrlKey || event.shiftKey) return;
+                  event.preventDefault();
+                  setCurrentView('blog');
+                }}
+                className="text-base text-left hover:text-primary transition-colors w-fit"
+              >
+                Dicas para o seu atendimento
+              </a>
             </div>
           </div>
 

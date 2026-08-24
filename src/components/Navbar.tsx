@@ -8,13 +8,21 @@ interface NavbarProps {
   setCurrentView: (view: AppView) => void;
   settings: SiteSettings;
   onStartDiagnostic: () => void;
+  /** Só entra no menu quando existe artigo publicado (ver comentário abaixo). */
+  hasPublishedPosts?: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ setCurrentView, settings, onStartDiagnostic }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  setCurrentView,
+  settings,
+  onStartDiagnostic,
+  hasPublishedPosts = false,
+}) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // "Blog Tech" saiu do menu: link que não leva a nada é sinal de site abandonado.
-  // Volta quando existir o primeiro post publicado.
+  // "Blog Tech" saiu do menu: link que não leva a nada é sinal de site
+  // abandonado. Volta sozinho quando existe o primeiro artigo publicado —
+  // e volta com nome de cliente ("Dicas"), não de blog.
   const navLinks = [
     { label: 'Como funciona', hash: '#como-funciona' },
     { label: 'Preços', hash: '#planos' },
@@ -23,6 +31,20 @@ export const Navbar: React.FC<NavbarProps> = ({ setCurrentView, settings, onStar
     { label: 'Garantia', hash: '#garantia' },
     { label: 'Dúvidas', hash: '#faq' }
   ];
+
+  /**
+   * Link para o blog dentro do menu. Além de ser o caminho do visitante, é o
+   * que faz o buscador descobrir os artigos: página sem link apontando para
+   * ela demora muito mais a ser indexada.
+   */
+  const blogLink = hasPublishedPosts ? { label: 'Dicas', href: '/blog' } : null;
+
+  const handleBlogClick = (event: React.MouseEvent) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey) return;
+    event.preventDefault();
+    setMobileMenuOpen(false);
+    setCurrentView('blog');
+  };
 
   const handleNavClick = (hash: string) => {
     setCurrentView('home');
@@ -64,6 +86,16 @@ export const Navbar: React.FC<NavbarProps> = ({ setCurrentView, settings, onStar
               {link.label}
             </button>
           ))}
+
+          {blogLink && (
+            <a
+              href={blogLink.href}
+              onClick={handleBlogClick}
+              className="text-base font-semibold text-on-surface-variant hover:text-primary transition-colors py-1"
+            >
+              {blogLink.label}
+            </a>
+          )}
         </nav>
 
         {/* Um único CTA primário em toda a página. WhatsApp fica discreto. */}
@@ -106,6 +138,16 @@ export const Navbar: React.FC<NavbarProps> = ({ setCurrentView, settings, onStar
                 {link.label}
               </button>
             ))}
+
+            {blogLink && (
+              <a
+                href={blogLink.href}
+                onClick={handleBlogClick}
+                className="py-3.5 text-lg font-semibold text-on-surface hover:text-primary border-b border-outline-variant"
+              >
+                {blogLink.label}
+              </a>
+            )}
           </div>
 
           <button

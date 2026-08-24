@@ -1,11 +1,17 @@
 import React from 'react';
-import { Plan, SiteSettings } from '../types';
+import { EntryOffer, Plan, SiteSettings } from '../types';
 import { openWhatsApp } from '../lib/contact';
 import { CheckCircle, Sparkles, MessageCircle, Tag, LifeBuoy } from 'lucide-react';
 
 interface OfferTriangleVitrineProps {
   plans: Plan[];
   settings: SiteSettings;
+  /**
+   * A oferta de entrada é editável no admin e chega até aqui, mas ainda não
+   * tem bloco na vitrine — este componente nunca chegou a renderizá-la.
+   * Declarada como opcional para o App compilar; falta decidir onde ela entra.
+   */
+  entryOffer?: EntryOffer;
 }
 
 /**

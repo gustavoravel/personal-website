@@ -1,0 +1,5 @@
+# Netlify: qualquer caminho que não seja um arquivo real cai no app React.
+# Necessário para /blog/meu-artigo funcionar ao ser aberto direto ou recarregado.
+# As páginas estáticas geradas em dist/blog/<slug>/index.html têm prioridade —
+# o Netlify serve o arquivo existente antes de aplicar esta regra.
+/*    /index.html   200

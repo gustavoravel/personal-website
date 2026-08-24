@@ -1,0 +1,16 @@
+# Publicação no Netlify.
+#
+# O comando precisa ser `npm run build` (e não `vite build`): é ele que roda,
+# depois do Vite, o gerador das páginas estáticas do blog, do sitemap.xml e do
+# rss.xml. Com `vite build` sozinho, o link de artigo colado no WhatsApp volta
+# a mostrar a prévia da página inicial.
+#
+# O encaminhamento de rotas fica em public/_redirects.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # O gerador usa fetch nativo e a API de build do Vite: precisa de Node 18+.
+  NODE_VERSION = "22"

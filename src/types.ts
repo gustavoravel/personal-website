@@ -1,3 +1,7 @@
+import type { Block, PostSeo } from './types.blocks';
+
+export * from './types.blocks';
+
 export interface Plan {
   id: string;
   name: string;
@@ -51,12 +55,26 @@ export interface BlogPost {
   title: string;
   slug: string;
   excerpt: string;
+  /**
+   * Markdown do artigo. Continua sendo a fonte para importar/exportar e o
+   * fallback de quem foi salvo antes do editor de blocos, mas quem manda na
+   * renderização é `blocks`.
+   */
   content: string;
+  /** Conteúdo estruturado do editor de blocos. Vazio = converte de `content`. */
+  blocks?: Block[];
   category: string;
+  /** Palavras-chave secundárias. Viram `keywords` e a lista de tags do artigo. */
+  tags?: string[];
   readTime: string;
   publishedAt: string;
+  /** Data da última edição. O Google usa para saber que o artigo está vivo. */
+  updatedAt?: string;
   author: string;
   featuredImage?: string;
+  /** Texto alternativo da imagem destacada. */
+  featuredImageAlt?: string;
+  seo?: PostSeo;
   isPublished: boolean;
 }
 
@@ -95,4 +113,20 @@ export interface SiteSettings {
   meiRazaoSocial: string;
   heroHeadline: string;
   heroSubheadline: string;
+}
+
+/**
+ * Oferta de entrada mostrada acima dos planos (bloco editável no admin).
+ *
+ * O tipo estava sendo importado por App, PlansEditor e store sem existir em
+ * lugar nenhum — o build inteiro falhava por causa disso.
+ */
+export interface EntryOffer {
+  name: string;
+  /** Pagamento único, como os planos. */
+  price: number;
+  deliveryTime: string;
+  description: string;
+  includes: string[];
+  whatsappMessage: string;
 }

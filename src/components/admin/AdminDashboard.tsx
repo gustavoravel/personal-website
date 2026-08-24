@@ -10,7 +10,8 @@ import {
   signOut,
 } from '../../lib/auth';
 import { PlansEditor } from './PlansEditor';
-import { Lock, Save, Plus, Trash2, Edit, Check, X, DollarSign, FileText, Users, Settings, MessageCircle, ShieldCheck, LogOut } from 'lucide-react';
+import { Lock, Save, Plus, Trash2, Edit, Check, X, DollarSign, Download, ExternalLink, FileText, Users, Settings, MessageCircle, ShieldCheck, LogOut } from 'lucide-react';
+import { PostEditor } from './editor/PostEditor';
 
 interface AdminDashboardProps {
   plans: Plan[];
@@ -47,7 +48,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Blog editing state
   const [blogList, setBlogList] = useState<BlogPost[]>(posts);
-  const [editingPost, setEditingPost] = useState<Partial<BlogPost> | null>(null);
+  /** `null` = editor fechado. `{ post: null }` = artigo novo. */
+  const [editingPost, setEditingPost] = useState<{ post: BlogPost | null } | null>(null);
 
   // Settings editing state
   const [siteSettingsForm, setSiteSettingsForm] = useState<SiteSettings>(settings);
@@ -115,32 +117,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     onBackToHome();
   };
 
-  // Save Post
-  const handleSavePost = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingPost?.title || !editingPost?.content) return;
-
-    const newPost: BlogPost = {
-      id: editingPost.id || 'post-' + Date.now(),
-      title: editingPost.title,
-      slug: editingPost.slug || editingPost.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, ''),
-      excerpt: editingPost.excerpt || editingPost.content.slice(0, 120) + '...',
-      content: editingPost.content,
-      category: editingPost.category || 'Geral',
-      readTime: editingPost.readTime || '4 min',
-      publishedAt: editingPost.publishedAt || new Date().toISOString().split('T')[0],
-      author: editingPost.author || 'Gustavo Ravel',
-      isPublished: editingPost.isPublished ?? true
-    };
-
-    const updated = editingPost.id
-      ? blogList.map((p) => (p.id === newPost.id ? newPost : p))
-      : [newPost, ...blogList];
+  /**
+   * O editor de blocos entrega o artigo já normalizado (slug, resumo, tempo
+   * de leitura e Markdown equivalente), então aqui só resta persistir.
+   */
+  const handleSavePost = (saved: BlogPost) => {
+    const exists = blogList.some((p) => p.id === saved.id);
+    const updated = exists
+      ? blogList.map((p) => (p.id === saved.id ? saved : p))
+      : [saved, ...blogList];
 
     setBlogList(updated);
     AppStore.savePosts(updated);
     onUpdatePosts(updated);
     setEditingPost(null);
+  };
+
+  /**
+   * Baixa `posts.json` para o repositório.
+   *
+   * Os artigos vivem no navegador (e no Supabase, quando configurado), mas o
+   * gerador de páginas estáticas roda no build, fora do navegador — ele
+   * precisa dos artigos como arquivo. Sem isso, o link do artigo colado no
+   * WhatsApp mostra a prévia da home.
+   */
+  const handleExportPostsJson = () => {
+    const blob = new Blob([JSON.stringify(blogList, null, 2)], {
+      type: 'application/json;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'posts.json';
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleDeletePost = (id: string) => {
@@ -361,124 +371,115 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* TAB 2: Blog Management */}
       {activeTab === 'blog' && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold text-on-surface">Gerenciamento de Artigos do Blog</h2>
-            <button
-              onClick={() =>
-                setEditingPost({
-                  title: '',
-                  category: 'Automação',
-                  content: '',
-                  excerpt: '',
-                  readTime: '4 min',
-                  author: 'Gustavo Ravel',
-                  isPublished: true
-                })
-              }
-              className="bg-primary text-on-primary font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Novo Artigo</span>
-            </button>
-          </div>
+          {editingPost ? (
+            <PostEditor
+              post={editingPost.post}
+              posts={blogList}
+              settings={settings}
+              onSave={handleSavePost}
+              onCancel={() => setEditingPost(null)}
+            />
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-xl font-bold text-on-surface">Artigos do blog</h2>
 
-          {/* Form Modal for Creating/Editing Post */}
-          {editingPost && (
-            <form onSubmit={handleSavePost} className="glass-panel p-8 rounded-2xl border border-primary/40 space-y-4">
-              <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                <h3 className="font-bold text-lg text-on-surface">
-                  {editingPost.id ? 'Editar Artigo' : 'Novo Artigo'}
-                </h3>
-                <button type="button" onClick={() => setEditingPost(null)} className="text-on-surface-variant hover:text-on-surface">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleExportPostsJson}
+                    title="Salve este arquivo em content/posts.json antes de publicar o site"
+                    className="flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-xs font-bold text-on-surface"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Exportar para o build</span>
+                  </button>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Título do Artigo</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingPost.title || ''}
-                    onChange={(e) => setEditingPost({ ...editingPost, title: e.target.value })}
-                    className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Categoria</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingPost.category || ''}
-                    onChange={(e) => setEditingPost({ ...editingPost, category: e.target.value })}
-                    className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface focus:outline-none"
-                  />
+                  <button
+                    onClick={() => setEditingPost({ post: null })}
+                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-on-primary"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Novo artigo</span>
+                  </button>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Resumo Excerpt</label>
-                <input
-                  type="text"
-                  value={editingPost.excerpt || ''}
-                  onChange={(e) => setEditingPost({ ...editingPost, excerpt: e.target.value })}
-                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface focus:outline-none"
-                />
-              </div>
+              <p className="text-xs text-on-surface-variant">
+                A prévia que aparece ao colar o link no WhatsApp e as páginas que o Google indexa
+                são geradas no build, a partir de <code>content/posts.json</code>. Depois de
+                publicar um artigo, exporte esse arquivo e publique o site de novo.
+              </p>
 
-              <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase mb-1">Conteúdo Completo (Markdown)</label>
-                <textarea
-                  rows={8}
-                  required
-                  value={editingPost.content || ''}
-                  onChange={(e) => setEditingPost({ ...editingPost, content: e.target.value })}
-                  className="w-full bg-surface-container p-3 rounded-lg border border-white/10 text-sm text-on-surface focus:outline-none font-mono"
-                />
-              </div>
+              <div className="space-y-3">
+                {blogList.map((post) => (
+                  <div
+                    key={post.id}
+                    className="glass-panel flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/10 p-4"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 font-mono text-xs font-bold text-primary">
+                        <span>{post.category}</span>
+                        <span>·</span>
+                        <span className="text-on-surface-variant">{post.publishedAt}</span>
+                        <span>·</span>
+                        <span className="text-on-surface-variant">{post.readTime}</span>
+                        <span
+                          className={`rounded px-2 py-0.5 ${
+                            post.isPublished
+                              ? 'bg-emerald-500/20 text-emerald-300'
+                              : 'bg-amber-500/20 text-amber-300'
+                          }`}
+                        >
+                          {post.isPublished ? 'publicado' : 'rascunho'}
+                        </span>
+                        {post.seo?.noindex && (
+                          <span className="rounded bg-white/10 px-2 py-0.5 text-on-surface-variant">
+                            fora da busca
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="truncate text-base font-bold text-on-surface">{post.title}</h4>
+                      <p className="truncate text-xs text-on-surface-variant">/blog/{post.slug}</p>
+                    </div>
 
-              <div className="flex gap-3 pt-2">
-                <button type="submit" className="bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-lg text-xs flex items-center gap-2">
-                  <Save className="w-4 h-4" />
-                  <span>Salvar Artigo</span>
-                </button>
-              </div>
-            </form>
-          )}
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`/blog/${post.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Abrir no site"
+                        className="glass-panel rounded-lg p-2 text-on-surface hover:text-primary"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
 
-          {/* List of existing posts */}
-          <div className="space-y-3">
-            {blogList.map((post) => (
-              <div key={post.id} className="glass-panel p-4 rounded-xl border border-white/10 flex justify-between items-center gap-4">
-                <div>
-                  <div className="flex items-center gap-2 text-xs font-mono text-primary font-bold">
-                    <span>{post.category}</span>
-                    <span>•</span>
-                    <span className="text-on-surface-variant">{post.publishedAt}</span>
+                      <button
+                        onClick={() => setEditingPost({ post })}
+                        title="Editar"
+                        className="glass-panel rounded-lg p-2 text-on-surface hover:text-primary"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        title="Excluir"
+                        className="glass-panel rounded-lg p-2 text-rose-400 hover:bg-rose-500/20"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                  <h4 className="font-bold text-on-surface text-base">{post.title}</h4>
-                </div>
+                ))}
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setEditingPost(post)}
-                    className="p-2 glass-panel text-on-surface hover:text-primary rounded-lg"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-
-                  <button
-                    onClick={() => handleDeletePost(post.id)}
-                    className="p-2 glass-panel text-rose-400 hover:bg-rose-500/20 rounded-lg"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                {blogList.length === 0 && (
+                  <p className="rounded-xl border border-dashed border-white/15 p-8 text-center text-sm text-on-surface-variant">
+                    Nenhum artigo ainda. Comece um novo ou cole um texto pronto em Markdown.
+                  </p>
+                )}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
       )}
 
