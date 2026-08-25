@@ -21,6 +21,7 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { LegalPage } from './components/legal/LegalPage';
 import { applyHead, homeHead } from './lib/seo';
 import { navigate, normalizeLegacyHash, routeFromLocation, type Route } from './lib/router';
+import { initAnalytics, trackPageView } from './lib/analytics';
 import {
   INITIAL_CASE_STUDIES,
   INITIAL_DIAGNOSTIC_QUESTIONS,
@@ -80,6 +81,17 @@ export function App() {
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
+
+  // Analytics: uma inicialização por carregamento e um pageview por rota.
+  // Numa SPA a troca de rota não recarrega a página, então o GA só enxerga a
+  // navegação se formos nós a avisar.
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
+  useEffect(() => {
+    trackPageView(window.location.pathname + window.location.search + window.location.hash, document.title);
+  }, [route]);
 
   /** A home tem as meta tags do index.html; ao voltar do blog, restaura-as. */
   useEffect(() => {
