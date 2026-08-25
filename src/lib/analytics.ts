@@ -39,3 +39,24 @@ export function trackEvent(name: string, params?: Record<string, unknown>): void
   if (!initialized) return;
   ReactGA.event(name, params);
 }
+
+/**
+ * Conversões. No GA4 estes dois eventos precisam ser marcados como
+ * "Principais eventos" (Admin → Eventos) para contarem como conversão:
+ *
+ *   whatsapp_click — clique em qualquer botão que abre o WhatsApp
+ *   generate_lead  — formulário enviado (contato ou diagnóstico)
+ *
+ * `generate_lead` é nome recomendado pelo próprio GA4, então já aparece
+ * pronto nos relatórios de aquisição.
+ */
+
+/** `origem` diz qual botão converteu (hero, navbar, planos...) — sem isso o relatório só diz "alguém clicou". */
+export function trackWhatsAppClick(origem: string, extras?: Record<string, unknown>): void {
+  trackEvent('whatsapp_click', { origem, ...extras });
+}
+
+/** `formulario`: 'contato' ou 'diagnostico'. */
+export function trackLeadSubmit(formulario: string, extras?: Record<string, unknown>): void {
+  trackEvent('generate_lead', { formulario, ...extras });
+}

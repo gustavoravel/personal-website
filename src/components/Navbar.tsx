@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ShieldCheck, MessageCircle, Menu, X } from 'lucide-react';
+import { ShieldCheck, Menu, X } from 'lucide-react';
 import { SiteSettings } from '../types';
 import { AppView } from '../App';
 import { openWhatsApp, hasWhatsApp } from '../lib/contact';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
 
 interface NavbarProps {
   setCurrentView: (view: AppView) => void;
@@ -101,10 +102,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Um único CTA primário em toda a página. WhatsApp fica discreto. */}
         <div className="hidden sm:flex items-center gap-4 shrink-0">
           <button
-            onClick={() => openWhatsApp(settings, settings.whatsappWelcomeMessage)}
+            onClick={() => openWhatsApp(settings, settings.whatsappWelcomeMessage, 'navbar')}
             className="inline-flex items-center gap-2 text-on-surface-variant hover:text-emerald-400 font-semibold text-base transition-colors"
           >
-            <MessageCircle className="w-5 h-5" />
+            <WhatsAppIcon className="w-5 h-5" />
             <span>{hasWhatsApp(settings) ? 'WhatsApp' : 'Contato'}</span>
           </button>
 

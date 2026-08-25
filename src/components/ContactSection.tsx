@@ -4,6 +4,8 @@ import { AppStore } from '../services/store';
 import { openWhatsApp, hasWhatsApp, mailtoUrl, postLead, isLeadEndpointConfigured } from '../lib/contact';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { Mail, MessageCircle, Send, CheckCircle2, User, Phone, Briefcase, Lock, AlertTriangle } from 'lucide-react';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
+import { trackLeadSubmit } from '../lib/analytics';
 
 interface ContactSectionProps {
   settings: SiteSettings;
@@ -36,7 +38,11 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
       ? await postLead({ ...lead, origem: 'Formulário de contato do site' })
       : false;
 
-    setStatus(webhookOk || savedRemotely ? 'sent' : 'error');
+    const ok = webhookOk || savedRemotely;
+    setStatus(ok ? 'sent' : 'error');
+
+    // Só conta como conversão o lead que realmente saiu do navegador.
+    if (ok) trackLeadSubmit('contato', { tipo_negocio: businessType || 'nao-informado' });
   };
 
   const emailHref = mailtoUrl(settings, 'Contato pelo site');
@@ -252,12 +258,13 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
                     onClick={() =>
                       openWhatsApp(
                         settings,
-                        `Olá Gustavo! Quero meu diagnóstico gratuito.\n\nNome: ${name || '(não informado)'}\nO que eu faço: ${businessType || '(não informado)'}`
+                        `Olá Gustavo! Quero meu diagnóstico gratuito.\n\nNome: ${name || '(não informado)'}\nO que eu faço: ${businessType || '(não informado)'}`,
+                        'formulario-contato'
                       )
                     }
                     className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 text-base transition-colors"
                   >
-                    <MessageCircle className="w-5 h-5" />
+                    <WhatsAppIcon className="w-5 h-5" />
                     <span>WhatsApp</span>
                   </button>
                 </div>
@@ -273,11 +280,11 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
                 </p>
                 <button
                   onClick={() =>
-                    openWhatsApp(settings, `Olá Gustavo! Acabei de enviar o formulário no site. Meu nome é ${name || 'cliente'}.`)
+                    openWhatsApp(settings, `Olá Gustavo! Acabei de enviar o formulário no site. Meu nome é ${name || 'cliente'}.`, 'pos-envio-formulario')
                   }
                   className="inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-3.5 rounded-xl font-bold text-base hover:bg-emerald-500 transition-colors"
                 >
-                  <MessageCircle className="w-5 h-5" />
+                  <WhatsAppIcon className="w-5 h-5" />
                   <span>Não quero esperar, falar agora</span>
                 </button>
               </div>

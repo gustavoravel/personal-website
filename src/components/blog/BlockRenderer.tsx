@@ -1,5 +1,6 @@
 import React from 'react';
-import { AlertTriangle, CheckCircle2, Info, MessageCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Info } from 'lucide-react';
+import { WhatsAppIcon } from '../icons/WhatsAppIcon';
 import type { Block } from '../../types.blocks';
 import { headingAnchor, isEmptyBlock } from '../../lib/blocks';
 import { inlineToHtml, sanitizeSrc } from '../../lib/markdown';
@@ -195,7 +196,7 @@ const BlockView: React.FC<{
             onClick={() => onCtaClick?.(block)}
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-bold text-on-primary transition-transform hover:scale-105"
           >
-            <MessageCircle className="h-4 w-4" />
+            <WhatsAppIcon className="h-4 w-4" />
             <span>{block.buttonText}</span>
           </button>
         </aside>

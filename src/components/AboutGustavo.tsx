@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { UserCheck, ShieldCheck, MessageCircle, MapPin } from 'lucide-react';
+import { UserCheck, ShieldCheck, MapPin } from 'lucide-react';
 import { SiteSettings } from '../types';
 import { openWhatsApp } from '../lib/contact';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
 
 interface AboutGustavoProps {
   settings: SiteSettings;
@@ -88,10 +89,10 @@ export const AboutGustavo: React.FC<AboutGustavoProps> = ({ settings }) => {
             </div>
 
             <button
-              onClick={() => openWhatsApp(settings, 'Olá Gustavo! Li sua apresentação no site e quero tirar uma dúvida.')}
+              onClick={() => openWhatsApp(settings, 'Olá Gustavo! Li sua apresentação no site e quero tirar uma dúvida.', 'sobre')}
               className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-xl text-base transition-colors"
             >
-              <MessageCircle className="w-5 h-5" />
+              <WhatsAppIcon className="w-5 h-5" />
               <span>Conversar direto comigo</span>
             </button>
           </div>

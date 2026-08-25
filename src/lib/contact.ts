@@ -1,4 +1,5 @@
 import { SiteSettings } from '../types';
+import { trackWhatsAppClick } from './analytics';
 
 /**
  * Central point for every outbound contact action.
@@ -18,8 +19,17 @@ export const whatsAppUrl = (settings: SiteSettings, message: string): string | n
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 };
 
-export const openWhatsApp = (settings: SiteSettings, message: string): void => {
+/**
+ * `origem` identifica o botão clicado e vai para o GA4 junto com a conversão.
+ * Quando o WhatsApp não está configurado o visitante cai no formulário — e o
+ * evento registra isso, para não inflar a conversão com cliques que não
+ * viraram conversa.
+ */
+export const openWhatsApp = (settings: SiteSettings, message: string, origem = 'nao-identificada'): void => {
   const url = whatsAppUrl(settings, message);
+
+  trackWhatsAppClick(origem, { destino: url ? 'whatsapp' : 'formulario' });
+
   if (url) {
     window.open(url, '_blank', 'noopener,noreferrer');
     return;

@@ -1,7 +1,8 @@
 import React from 'react';
 import { EntryOffer, Plan, SiteSettings } from '../types';
 import { openWhatsApp } from '../lib/contact';
-import { CheckCircle, Sparkles, MessageCircle, Tag, LifeBuoy } from 'lucide-react';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
+import { CheckCircle, Sparkles, Tag, LifeBuoy } from 'lucide-react';
 
 interface OfferTriangleVitrineProps {
   plans: Plan[];
@@ -105,14 +106,14 @@ export const OfferTriangleVitrine: React.FC<OfferTriangleVitrineProps> = ({ plan
 
             <div className="p-6 bg-surface-container-low rounded-b-2xl border-t border-outline-variant">
               <button
-                onClick={() => openWhatsApp(settings, plan.whatsappMessage)}
+                onClick={() => openWhatsApp(settings, plan.whatsappMessage, `planos:${plan.name}`)}
                 className={`w-full py-3.5 px-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all ${
                   plan.isPopular
                     ? 'bg-primary text-on-primary hover:scale-[1.02] shadow-md shadow-primary/20'
                     : 'bg-surface-container-high text-on-surface hover:bg-surface-container-highest border border-outline-variant'
                 }`}
               >
-                <MessageCircle className="w-5 h-5" />
+                <WhatsAppIcon className="w-5 h-5" />
                 <span>{plan.ctaText}</span>
               </button>
             </div>

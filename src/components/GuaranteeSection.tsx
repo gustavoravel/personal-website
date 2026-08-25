@@ -1,7 +1,8 @@
 import React from 'react';
 import { SiteSettings } from '../types';
 import { openWhatsApp } from '../lib/contact';
-import { ShieldCheck, Eye, RefreshCw, MessageCircle } from 'lucide-react';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
+import { ShieldCheck, Eye, RefreshCw } from 'lucide-react';
 
 interface GuaranteeSectionProps {
   settings: SiteSettings;
@@ -75,10 +76,10 @@ export const GuaranteeSection: React.FC<GuaranteeSectionProps> = ({ settings }) 
           primeiro diagnóstico é gratuito, e a garantia acima está escrita no contrato. Quando eu tiver cliente satisfeito, o depoimento vai aparecer aqui com nome, rosto e negócio reais — e você vai poder ligar para conferir.
         </p>
         <button
-          onClick={() => openWhatsApp(settings, 'Olá Gustavo! Quero ver o sistema funcionando antes de contratar. Pode me mostrar?')}
+          onClick={() => openWhatsApp(settings, 'Olá Gustavo! Quero ver o sistema funcionando antes de contratar. Pode me mostrar?', 'garantia')}
           className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-xl text-base transition-colors"
         >
-          <MessageCircle className="w-5 h-5" />
+          <WhatsAppIcon className="w-5 h-5" />
           <span>Quero ver funcionando antes de contratar</span>
         </button>
       </div>

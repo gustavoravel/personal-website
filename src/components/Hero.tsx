@@ -1,7 +1,8 @@
 import React from 'react';
-import { CheckCircle2, MessageCircle, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, ShieldCheck } from 'lucide-react';
 import { SiteSettings } from '../types';
 import { openWhatsApp, hasWhatsApp } from '../lib/contact';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
 
 interface HeroProps {
   settings: SiteSettings;
@@ -61,10 +62,10 @@ export const Hero: React.FC<HeroProps> = ({ settings, onStartDiagnostic }) => {
         </button>
 
         <button
-          onClick={() => openWhatsApp(settings, settings.whatsappWelcomeMessage)}
+          onClick={() => openWhatsApp(settings, settings.whatsappWelcomeMessage, 'hero')}
           className="inline-flex items-center gap-2 text-on-surface-variant hover:text-emerald-400 font-semibold text-base transition-colors underline-offset-4 hover:underline"
         >
-          <MessageCircle className="w-5 h-5" />
+          <WhatsAppIcon className="w-5 h-5" />
           <span>{hasWhatsApp(settings) ? 'Ou me chame no WhatsApp' : 'Ou me mande uma mensagem'}</span>
         </button>
       </div>

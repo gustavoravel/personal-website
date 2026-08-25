@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { DiagnosticQuestion, Plan, SiteSettings } from '../types';
 import { AppStore } from '../services/store';
 import { openWhatsApp, postLead, isLeadEndpointConfigured } from '../lib/contact';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
+import { trackLeadSubmit } from '../lib/analytics';
 import {
   ClipboardCheck,
   ArrowRight,
   RotateCcw,
-  MessageCircle,
   CheckCircle2,
   Sparkles,
   ArrowLeft,
@@ -122,11 +123,15 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
 
     // O WhatsApp abre de qualquer jeito logo abaixo — o aviso serve só para
     // o visitante saber que precisa mesmo enviar a mensagem por lá.
-    setSendState(webhookOk || savedRemotely ? 'idle' : 'error');
+    const ok = webhookOk || savedRemotely;
+    setSendState(ok ? 'idle' : 'error');
+
+    if (ok) trackLeadSubmit('diagnostico', { pontuacao: totalScore, situacao: maturity.label });
 
     openWhatsApp(
       settings,
-      `Olá Gustavo! Fiz o diagnóstico gratuito no seu site.\n\nNome: ${leadName || 'cliente'}\nO que eu faço: ${leadBusiness || 'não informado'}\nResultado: ${totalScore} de ${maxPossibleScore}\nSituação: ${maturity.label}\n\nQuero conversar sobre as recomendações.`
+      `Olá Gustavo! Fiz o diagnóstico gratuito no seu site.\n\nNome: ${leadName || 'cliente'}\nO que eu faço: ${leadBusiness || 'não informado'}\nResultado: ${totalScore} de ${maxPossibleScore}\nSituação: ${maturity.label}\n\nQuero conversar sobre as recomendações.`,
+      'diagnostico'
     );
   };
 
@@ -255,7 +260,7 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
             <form onSubmit={handleSend} className="bg-surface-container-high p-6 rounded-2xl border border-outline-variant space-y-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 font-bold text-on-surface text-lg">
-                  <MessageCircle className="w-5 h-5 text-emerald-400" />
+                  <WhatsAppIcon className="w-5 h-5 text-emerald-400" />
                   <span>Quer que eu te mande esse diagnóstico e um plano de correção?</span>
                 </div>
                 <p className="text-base text-on-surface-variant">
@@ -339,7 +344,7 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
                   disabled={!consent || sendState === 'sending'}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 text-base transition-colors disabled:opacity-50"
                 >
-                  <MessageCircle className="w-5 h-5" />
+                  <WhatsAppIcon className="w-5 h-5" />
                   <span>{sendState === 'sending' ? 'Enviando...' : 'Quero receber pelo WhatsApp'}</span>
                 </button>
 

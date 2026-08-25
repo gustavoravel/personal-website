@@ -1,7 +1,8 @@
 import React from 'react';
 import { SiteSettings } from '../types';
 import { hasWhatsApp, openWhatsApp } from '../lib/contact';
-import { MessageCircle, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
 
 interface StickyWhatsAppProps {
   settings: SiteSettings;
@@ -24,11 +25,11 @@ export const StickyWhatsApp: React.FC<StickyWhatsAppProps> = ({ settings, onStar
       </button>
 
       <button
-        onClick={() => openWhatsApp(settings, settings.whatsappWelcomeMessage)}
+        onClick={() => openWhatsApp(settings, settings.whatsappWelcomeMessage, 'barra-fixa-mobile')}
         aria-label={hasWhatsApp(settings) ? 'Falar com Gustavo no WhatsApp' : 'Ir para o formulário de contato'}
         className="w-14 bg-emerald-600 text-white rounded-xl flex items-center justify-center shrink-0"
       >
-        <MessageCircle className="w-6 h-6" />
+        <WhatsAppIcon className="w-6 h-6" />
       </button>
     </div>
   );

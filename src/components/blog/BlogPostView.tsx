@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
-import { ArrowLeft, Calendar, Clock, ListTree, MessageCircle, Share2, User } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, ListTree, Share2, User } from 'lucide-react';
+import { WhatsAppIcon } from '../icons/WhatsAppIcon';
+import { openWhatsApp as openWhatsAppLink } from '../../lib/contact';
 import type { BlogPost, SiteSettings } from '../../types';
 import { buildTableOfContents } from '../../lib/blocks';
 import { applyHead, postHead } from '../../lib/seo';
@@ -29,12 +31,10 @@ export const BlogPostView: React.FC<BlogPostViewProps> = ({
     applyHead(postHead(post, blocks));
   }, [post, blocks]);
 
-  const openWhatsApp = (message: string) => {
-    window.open(
-      `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(message)}`,
-      '_blank',
-      'noopener,noreferrer'
-    );
+  // Pelo funil de `lib/contact`: assim o número inválido cai no formulário
+  // em vez de abrir um wa.me quebrado, e o clique conta como conversão.
+  const openWhatsApp = (message: string, origem: string) => {
+    openWhatsAppLink(settings, message, origem);
   };
 
   const sharePost = async () => {
@@ -177,7 +177,8 @@ export const BlogPostView: React.FC<BlogPostViewProps> = ({
             onCtaClick={(block) =>
               openWhatsApp(
                 block.whatsappMessage ||
-                  `Olá Gustavo! Li o artigo "${post.title}" no seu blog e quero isso funcionando no meu negócio.`
+                  `Olá Gustavo! Li o artigo "${post.title}" no seu blog e quero isso funcionando no meu negócio.`,
+                'artigo:cta-no-texto'
               )
             }
           />
@@ -207,12 +208,13 @@ export const BlogPostView: React.FC<BlogPostViewProps> = ({
           <button
             onClick={() =>
               openWhatsApp(
-                `Olá Gustavo! Li o artigo "${post.title}" no seu blog e quero implementar isso no meu negócio.`
+                `Olá Gustavo! Li o artigo "${post.title}" no seu blog e quero implementar isso no meu negócio.`,
+                'artigo:rodape'
               )
             }
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-bold text-on-primary transition-transform hover:scale-105"
           >
-            <MessageCircle className="h-4 w-4" />
+            <WhatsAppIcon className="h-4 w-4" />
             <span>Chamar o Gustavo no WhatsApp</span>
           </button>
         </aside>

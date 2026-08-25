@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Plan, SiteSettings } from '../types';
 import { openWhatsApp } from '../lib/contact';
-import { Wallet, BadgeCheck, Unlock, KeyRound, Copy, Check, Building2, MessageCircle } from 'lucide-react';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
+import { Wallet, BadgeCheck, Unlock, KeyRound, Copy, Check, Building2 } from 'lucide-react';
 
 interface BillingExplainedProps {
   plans: Plan[];
@@ -168,10 +169,10 @@ export const BillingExplained: React.FC<BillingExplainedProps> = ({ plans, setti
 
       <div className="text-center">
         <button
-          onClick={() => openWhatsApp(settings, 'Olá Gustavo! Tenho uma dúvida sobre os valores e a forma de pagamento.')}
+          onClick={() => openWhatsApp(settings, 'Olá Gustavo! Tenho uma dúvida sobre os valores e a forma de pagamento.', 'pagamento')}
           className="inline-flex items-center gap-2 text-primary hover:underline font-semibold text-base"
         >
-          <MessageCircle className="w-5 h-5" />
+          <WhatsAppIcon className="w-5 h-5" />
           <span>Ficou alguma dúvida sobre preço? Me pergunte direto</span>
         </button>
       </div>
