@@ -41,20 +41,44 @@ jobs:
 
           # Uma leitura real, mínima: a tabela existe e a política de leitura
           # pública responde. `limit=1` para não trafegar os artigos inteiros.
-          status=$(curl -sS -o /tmp/resposta.txt -w '%{http_code}' \
-            -H "apikey: ${SUPABASE_ANON_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
-            "${SUPABASE_URL}/rest/v1/blog_posts?select=slug&limit=1")
+          #
+          # Três tentativas, porque o projeto hibernando faz a PRIMEIRA
+          # requisição falhar enquanto o banco sobe — comportamento medido, não
+          # suposto. Sem repetir, este fluxo mandaria e-mail de falha toda vez
+          # que acordasse o projeto, que é justamente quando ele funcionou.
+          for tentativa in 1 2 3; do
+            # `|| true` e não `|| echo 000`: em caso de falha o próprio curl
+            # já imprime 000 por causa do -w, e o echo gerava "000000" no log.
+            # O `|| true` existe só para o set -e não abortar o laço.
+            status=$(curl -sS -m 30 -o /tmp/resposta.txt -w '%{http_code}'               -H "apikey: ${SUPABASE_ANON_KEY}"               -H "Authorization: Bearer ${SUPABASE_ANON_KEY}"               "${SUPABASE_URL}/rest/v1/blog_posts?select=slug&limit=1" || true)
 
-          echo "HTTP ${status}"
+            echo "Tentativa ${tentativa}: HTTP ${status}"
 
-          if [ "${status}" != "200" ]; then
-            echo "Resposta inesperada do Supabase:"
-            cat /tmp/resposta.txt
-            echo
-            echo "Se o código for 000 ou 503, o projeto provavelmente está pausado:"
-            echo "reative em https://supabase.com/dashboard e rode este fluxo de novo."
-            exit 1
-          fi
+            if [ "${status}" = "200" ]; then
+              echo "Supabase respondeu normalmente."
+              exit 0
+            fi
 
-          echo "Supabase respondeu normalmente."
+            # 4xx é configuração errada (chave, tabela, política de leitura).
+            # Repetir não resolve, então falha logo com a mensagem útil.
+            if [ "${status}" -ge 400 ] 2>/dev/null && [ "${status}" -lt 500 ]; then
+              echo "Resposta do Supabase:"
+              cat /tmp/resposta.txt
+              echo
+              echo "HTTP ${status} indica chave ou permissão incorreta —"
+              echo "confira os segredos e a política de leitura de blog_posts."
+              exit 1
+            fi
+
+            if [ "${tentativa}" -lt 3 ]; then
+              echo "Aguardando o banco subir..."
+              sleep 15
+            fi
+          done
+
+          echo "Resposta do Supabase:"
+          cat /tmp/resposta.txt
+          echo
+          echo "Sem resposta depois de 3 tentativas. O projeto provavelmente está"
+          echo "pausado e precisa ser reativado à mão em https://supabase.com/dashboard"
+          exit 1
