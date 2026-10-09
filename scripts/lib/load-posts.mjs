@@ -111,10 +111,19 @@ async function fromPostsJson() {
   }
 }
 
+/** Espera, em milissegundos. */
+const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
- * Lê o banco. Devolve também `ok`: a trava de segurança do build depende de
- * saber a diferença entre "o banco disse que não há artigos" e "o banco não
- * respondeu".
+ * Lê o banco, com novas tentativas. Devolve também `ok`: a trava de segurança
+ * do build depende de saber a diferença entre "o banco disse que não há
+ * artigos" e "o banco não respondeu".
+ *
+ * As tentativas existem por um motivo medido, não por superstição: o projeto
+ * do plano gratuito hiberna, e o PRIMEIRO acesso falha enquanto o banco sobe —
+ * reproduzido aqui, com a requisição seguinte respondendo 200 normalmente.
+ * Sem repetir, um build disparado com o projeto frio geraria o site sem os
+ * artigos que só existem no banco.
  */
 async function fromSupabase() {
   const url = await readEnv('VITE_SUPABASE_URL');
@@ -124,23 +133,49 @@ async function fromSupabase() {
     return { posts: [], ok: false };
   }
 
-  try {
-    const response = await fetch(
-      `${url}/rest/v1/blog_posts?select=*&is_published=eq.true&order=published_at.desc`,
-      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
-    );
-    if (!response.ok) {
-      console.warn(`[blog] Supabase respondeu ${response.status}; ignorando essa origem.`);
-      return { posts: [], ok: false };
+  const endereco =
+    `${url}/rest/v1/blog_posts?select=*&is_published=eq.true&order=published_at.desc`;
+  const esperas = [0, 3000, 8000];
+
+  for (let tentativa = 0; tentativa < esperas.length; tentativa += 1) {
+    if (esperas[tentativa] > 0) {
+      console.log(
+        `[blog] Nova tentativa no Supabase em ${esperas[tentativa] / 1000}s ` +
+          `(${tentativa + 1} de ${esperas.length})…`
+      );
+      await esperar(esperas[tentativa]);
     }
-    const rows = await response.json();
-    if (rows.length > 0) console.log(`[blog] ${rows.length} artigo(s) no Supabase`);
-    return { posts: rows.map(rowToPost), ok: true };
-  } catch (error) {
-    console.warn(`[blog] Supabase inacessível (${error.message}); ignorando essa origem.`);
-    console.warn('[blog] Se o projeto estiver pausado, reative em https://supabase.com/dashboard');
-    return { posts: [], ok: false };
+
+    try {
+      const response = await fetch(endereco, {
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
+        signal: AbortSignal.timeout(20000),
+      });
+
+      if (response.ok) {
+        const rows = await response.json();
+        if (rows.length > 0) console.log(`[blog] ${rows.length} artigo(s) no Supabase`);
+        return { posts: rows.map(rowToPost), ok: true };
+      }
+
+      // 4xx é configuração errada (chave, tabela, política): repetir não ajuda.
+      if (response.status < 500) {
+        console.warn(
+          `[blog] Supabase respondeu ${response.status}. Confira a chave e as ` +
+            'políticas de leitura da tabela blog_posts.'
+        );
+        return { posts: [], ok: false };
+      }
+
+      console.warn(`[blog] Supabase respondeu ${response.status}.`);
+    } catch (error) {
+      console.warn(`[blog] Supabase não respondeu (${error.message}).`);
+    }
   }
+
+  console.warn('[blog] Supabase inacessível depois de 3 tentativas; ignorando essa origem.');
+  console.warn('[blog] Se o projeto estiver pausado, reative em https://supabase.com/dashboard');
+  return { posts: [], ok: false };
 }
 
 /**
