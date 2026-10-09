@@ -34,11 +34,6 @@ Não escreva só da trilha A. WhatsApp é a porta de entrada, não o assunto.
 
 ## Trilha A — Ferramentas do dia a dia
 
-- [ ] Como colocar sua agenda online sem pagar mensalidade — termo principal: `agenda online para pequeno negócio`
-      Ângulo: ela já ouviu falar, acha que é caro e complicado, e não sabe que
-      o compromisso pode cair na agenda do próprio cliente. Mostrar o caminho
-      e onde costuma travar.
-
 - [ ] Catálogo do WhatsApp Business: pare de mandar tabela de preço por foto — termo principal: `catálogo no whatsapp business`
       Ângulo: quem manda print de tabela de preço perde venda porque a foto
       fica velha e ninguém acha no meio da conversa. Passo a passo do catálogo.
@@ -112,6 +107,7 @@ pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 - [x] IA para atendimento no WhatsApp: 3 perguntas certas — `/blog/ia-para-atendimento-no-whatsapp-3-perguntas-certas`
 - [x] Atendimento automático no WhatsApp: 3 níveis — `/blog/atendimento-automatico-no-whatsapp-3-niveis`
 - [x] Organizar o negócio sozinho: 3 tarefas certas — `/blog/organizar-o-negocio-sozinho-3-tarefas-certas`
+- [x] Como colocar sua agenda online sem pagar mensalidade (Trilha A) — `/blog/agenda-online-para-pequeno-negocio`
 
 ---
 
