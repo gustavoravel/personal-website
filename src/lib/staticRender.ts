@@ -284,9 +284,15 @@ export function renderHead(config: HeadConfig): string {
     );
   }
 
+  // `data-seo-managed` é o que permite ao `applyHead` do cliente REMOVER estes
+  // scripts ao hidratar, em vez de somar os dele por cima. Sem o atributo, cada
+  // artigo ficava com BlogPosting e BreadcrumbList em duplicata — um do HTML
+  // estático e um do React —, e dado estruturado repetido o Google pode tratar
+  // como conflito. O LocalBusiness escrito à mão no index.html NÃO leva esta
+  // marca, então segue intacto na home.
   (config.jsonLd || []).filter(Boolean).forEach((schema) => {
     tags.push(
-      `<script type="application/ld+json">${JSON.stringify(schema).replace(/<\//g, '<\\/')}</script>`
+      `<script type="application/ld+json" data-seo-managed="true">${JSON.stringify(schema).replace(/<\//g, '<\\/')}</script>`
     );
   });
 

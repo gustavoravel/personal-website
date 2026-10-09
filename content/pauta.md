@@ -4,6 +4,10 @@ Fila de assuntos. O agente de escrita pega **o primeiro item não escrito da
 fila**, alternando entre as duas trilhas (um de cada, na ordem), escreve o
 artigo e marca o item aqui no mesmo Pull Request.
 
+**Ao mover um item para "Escritos", anote a trilha entre parênteses.** É só
+assim que a alternância funciona: a regra é "olhe a trilha do último escrito e
+pegue da outra", e sem a anotação a trilha anterior fica impossível de saber.
+
 Como ler: `- [ ]` ainda não escrito · `- [x]` já publicado.
 
 Formato de cada item:
@@ -107,11 +111,13 @@ pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 
 ## Escritos
 
-<!-- O agente move o item para cá quando o artigo entra. -->
+<!-- O agente move o item para cá quando o artigo entra, sempre com a trilha
+     entre parênteses: é o que diz qual trilha vem na próxima semana. -->
 
-- [x] IA para atendimento no WhatsApp: 3 perguntas certas — `/blog/ia-para-atendimento-no-whatsapp-3-perguntas-certas`
-- [x] Atendimento automático no WhatsApp: 3 níveis — `/blog/atendimento-automatico-no-whatsapp-3-niveis`
-- [x] Organizar o negócio sozinho: 3 tarefas certas — `/blog/organizar-o-negocio-sozinho-3-tarefas-certas`
+- [x] IA para atendimento no WhatsApp: 3 perguntas certas (Trilha A) — `/blog/ia-para-atendimento-no-whatsapp-3-perguntas-certas`
+- [x] Atendimento automático no WhatsApp: 3 níveis (Trilha A) — `/blog/atendimento-automatico-no-whatsapp-3-niveis`
+- [x] Organizar o negócio sozinho: 3 tarefas certas (Trilha B) — `/blog/organizar-o-negocio-sozinho-3-tarefas-certas`
+- [x] Como colocar sua agenda online sem pagar mensalidade (Trilha A) — `/blog/agenda-online-para-pequeno-negocio`
 
 ---
 
