@@ -6,11 +6,18 @@ import { formatDate, publishedPosts } from '../../lib/post';
 
 interface BlogListProps {
   posts: BlogPost[];
+  /** Os artigos do build ainda estão sendo carregados. */
+  loading?: boolean;
   onOpenPost: (post: BlogPost) => void;
   onBackToHome: () => void;
 }
 
-export const BlogList: React.FC<BlogListProps> = ({ posts, onOpenPost, onBackToHome }) => {
+export const BlogList: React.FC<BlogListProps> = ({
+  posts,
+  loading = false,
+  onOpenPost,
+  onBackToHome,
+}) => {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -189,10 +196,12 @@ export const BlogList: React.FC<BlogListProps> = ({ posts, onOpenPost, onBackToH
       </div>
 
       {filtered.length === 0 && (
-        <p className="py-16 text-center text-on-surface-variant">
-          {live.length === 0
-            ? 'Os primeiros artigos estão sendo escritos. Volte em breve.'
-            : 'Nenhum artigo encontrado para essa busca.'}
+        <p className="py-16 text-center text-on-surface-variant" role="status">
+          {loading
+            ? 'Carregando os artigos…'
+            : live.length === 0
+              ? 'Os primeiros artigos estão sendo escritos. Volte em breve.'
+              : 'Nenhum artigo encontrado para essa busca.'}
         </p>
       )}
     </div>

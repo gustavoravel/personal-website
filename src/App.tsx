@@ -42,7 +42,21 @@ export function App() {
 
   const [plans, setPlans] = useState<Plan[]>(() => AppStore.getPlans());
   const [entryOffer, setEntryOffer] = useState<EntryOffer>(() => AppStore.getEntryOffer());
+  /** Artigos que VOCÊ escreveu neste navegador — é o que o painel edita e exporta. */
   const [posts, setPosts] = useState<BlogPost[]>(() => AppStore.getPosts());
+  /**
+   * Artigos que estão no ar: `blog-data.json` (gerado no build) fundido com os
+   * locais. O blog público lê daqui, e não de `posts`, senão o visitante vê a
+   * listagem vazia — os artigos dele moram no repositório, não no navegador.
+   */
+  const [sitePosts, setSitePosts] = useState<BlogPost[]>(() => AppStore.getPosts());
+  /**
+   * Falso até `blog-data.json` responder. Enquanto isso o blog não pode
+   * concluir que um artigo não existe: mostrar "não encontrado" com noindex
+   * durante o carregamento é exatamente o que fazia o Google desindexar os
+   * artigos.
+   */
+  const [sitePostsLoaded, setSitePostsLoaded] = useState(false);
   const [leads, setLeads] = useState<Lead[]>(() => AppStore.getLeads());
   const [settings, setSettings] = useState<SiteSettings>(() => AppStore.getSettings());
 
@@ -57,6 +71,12 @@ export function App() {
 
   useEffect(() => {
     reloadFromStore();
+
+    // O que o visitante vê.
+    void AppStore.fetchPublishedPosts().then((published) => {
+      setSitePosts(published);
+      setSitePostsLoaded(true);
+    });
 
     // Quando o Supabase está configurado, ele é a cópia compartilhada dos
     // artigos: sem isto, um artigo escrito em outro computador não aparece.
@@ -138,7 +158,7 @@ export function App() {
         setCurrentView={goToView}
         settings={settings}
         onStartDiagnostic={scrollToDiagnostic}
-        hasPublishedPosts={posts.some((post) => post.isPublished)}
+        hasPublishedPosts={sitePosts.some((post) => post.isPublished)}
       />
 
       <main className="flex-grow">
@@ -201,8 +221,9 @@ export function App() {
 
         {isBlogView && (
           <BlogModule
-            posts={posts}
+            posts={sitePosts}
             settings={settings}
+            loading={!sitePostsLoaded}
             slug={route.name === 'post' ? route.slug : null}
             onOpenPost={(post) => go({ name: 'post', slug: post.slug })}
             onOpenList={() => go({ name: 'blog' })}

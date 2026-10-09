@@ -1,0 +1,60 @@
+# Mantém o projeto do Supabase acordado.
+#
+# O plano gratuito do Supabase pausa o projeto depois de alguns dias sem
+# nenhuma requisição. Projeto pausado significa: login do /admin não funciona
+# e o formulário de contato do site não grava lead nenhum — perde-se o cliente
+# sem ninguém perceber.
+#
+# Roda todo dia, não toda semana: a janela de inatividade do plano gratuito é
+# de poucos dias e uma falha de uma única execução semanal já deixaria o
+# projeto pausar.
+#
+# Isto NÃO reativa um projeto já pausado — isso é um clique no painel do
+# Supabase. Aqui só se evita que ele pause de novo.
+
+name: Supabase keepalive
+
+on:
+  schedule:
+    # 11:10 UTC = 08:10 em Brasília. Minuto quebrado de propósito: horários
+    # redondos são os mais concorridos no agendador do GitHub e sofrem atraso.
+    - cron: '10 11 * * *'
+  # Permite disparar à mão na aba Actions, útil para testar o segredo.
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar a tabela de artigos
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_ANON_KEY}" ]; then
+            echo "Faltam os segredos SUPABASE_URL e/ou SUPABASE_ANON_KEY no repositório."
+            echo "Settings > Secrets and variables > Actions > New repository secret."
+            exit 1
+          fi
+
+          # Uma leitura real, mínima: a tabela existe e a política de leitura
+          # pública responde. `limit=1` para não trafegar os artigos inteiros.
+          status=$(curl -sS -o /tmp/resposta.txt -w '%{http_code}' \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/rest/v1/blog_posts?select=slug&limit=1")
+
+          echo "HTTP ${status}"
+
+          if [ "${status}" != "200" ]; then
+            echo "Resposta inesperada do Supabase:"
+            cat /tmp/resposta.txt
+            echo
+            echo "Se o código for 000 ou 503, o projeto provavelmente está pausado:"
+            echo "reative em https://supabase.com/dashboard e rode este fluxo de novo."
+            exit 1
+          fi
+
+          echo "Supabase respondeu normalmente."

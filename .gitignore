@@ -146,3 +146,6 @@ vite.config.ts.timestamp-*
 .agents/
 .claude/
 
+
+# Gerado no build a partir de content/ e do Supabase (scripts/generate-blog-data.mjs)
+public/blog-data.json

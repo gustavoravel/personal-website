@@ -381,6 +381,51 @@ export class AppStore {
   }
 
   /**
+   * Lê `blog-data.json`, gerado no build, e funde com os artigos locais.
+   *
+   * É esta a lista que o blog público usa. Sem ela, o visitante recebia a
+   * listagem vazia e o artigo aberto direto era substituído pela página de
+   * "não encontrado" com noindex — ou seja, o blog se apagava da busca,
+   * porque o Google executa JavaScript e via justamente essa troca.
+   *
+   * O resultado NÃO é gravado no localStorage de propósito: o localStorage é
+   * o que VOCÊ escreveu no editor, e é dele que sai o `posts.json`. Misturar
+   * os artigos em arquivo `.md` ali faria eles serem reexportados como JSON
+   * na próxima vez, duplicando a fonte do mesmo artigo.
+   */
+  static async fetchPublishedPosts(): Promise<BlogPost[]> {
+    const authored = AppStore.getPosts();
+
+    let fromBuild: BlogPost[] = [];
+    try {
+      const response = await fetch('/blog-data.json', { cache: 'no-cache' });
+      if (response.ok) {
+        const payload = await response.json();
+        if (Array.isArray(payload?.posts)) {
+          fromBuild = payload.posts.map(normalizeStoredPost);
+        }
+      }
+    } catch {
+      // Em desenvolvimento o arquivo pode não existir ainda. Segue com o local.
+    }
+
+    const merged = new Map<string, BlogPost>();
+    authored.forEach((post) => merged.set(post.slug, post));
+
+    fromBuild.forEach((post) => {
+      const current = merged.get(post.slug);
+      // Empate na data de edição: vale o do build, que é o que está no ar.
+      if (!current || (post.updatedAt || '') >= (current.updatedAt || '')) {
+        merged.set(post.slug, post);
+      }
+    });
+
+    return Array.from(merged.values()).sort((a, b) =>
+      a.publishedAt < b.publishedAt ? 1 : -1
+    );
+  }
+
+  /**
    * Busca os artigos no Supabase e funde com o que existe neste navegador.
    *
    * Fusão, e não substituição: um rascunho escrito aqui que ainda não subiu

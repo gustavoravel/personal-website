@@ -10,6 +10,8 @@ interface BlogModuleProps {
   settings: SiteSettings;
   /** Vazio = listagem. Preenchido = artigo em /blog/<slug>. */
   slug: string | null;
+  /** Os artigos do build ainda estão sendo carregados. */
+  loading?: boolean;
   onOpenPost: (post: BlogPost) => void;
   onOpenList: () => void;
   onBackToHome: () => void;
@@ -27,12 +29,15 @@ export const BlogModule: React.FC<BlogModuleProps> = ({
   posts,
   settings,
   slug,
+  loading = false,
   onOpenPost,
   onOpenList,
   onBackToHome,
 }) => {
   const post = slug ? posts.find((item) => item.slug === slug) : null;
-  const notFound = Boolean(slug) && (!post || !post.isPublished);
+  // Só é "não encontrado" depois que a lista do build chegou. Antes disso a
+  // resposta honesta é "ainda carregando".
+  const notFound = !loading && Boolean(slug) && (!post || !post.isPublished);
 
   useEffect(() => {
     if (!notFound) return;
@@ -43,6 +48,16 @@ export const BlogModule: React.FC<BlogModuleProps> = ({
       noindex: true,
     });
   }, [notFound]);
+
+  if (loading && !post) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] max-w-2xl items-center justify-center px-gutter pb-20 pt-32">
+        <p className="text-on-surface-variant" role="status">
+          Carregando…
+        </p>
+      </div>
+    );
+  }
 
   if (notFound) {
     return (
@@ -74,5 +89,12 @@ export const BlogModule: React.FC<BlogModuleProps> = ({
     );
   }
 
-  return <BlogList posts={posts} onOpenPost={onOpenPost} onBackToHome={onBackToHome} />;
+  return (
+    <BlogList
+      posts={posts}
+      loading={loading}
+      onOpenPost={onOpenPost}
+      onBackToHome={onBackToHome}
+    />
+  );
 };

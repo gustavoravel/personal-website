@@ -392,3 +392,11 @@ ${items}
 
 /** Links para os sanitizadores continuarem exportados a quem gerar HTML avulso. */
 export { sanitizeHref };
+
+/**
+ * Reexportado para os scripts de build: eles importam só este módulo (é o
+ * único compilado para JavaScript antes de rodar no Node).
+ */
+export { postFromMarkdown } from './postFromMarkdown';
+export { SITE_URL } from './seo';
+export { publishedPosts } from './post';

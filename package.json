@@ -4,11 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build && node scripts/generate-blog-static.mjs",
+    "dev": "node scripts/generate-blog-data.mjs && vite",
+    "build": "tsc && node scripts/generate-blog-data.mjs && vite build && node scripts/generate-blog-static.mjs",
     "lint": "tsc",
     "preview": "vite preview",
-    "build:blog": "node scripts/generate-blog-static.mjs"
+    "build:blog": "node scripts/generate-blog-static.mjs",
+    "blog:data": "node scripts/generate-blog-data.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

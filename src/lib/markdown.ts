@@ -191,7 +191,12 @@ export function markdownToBlocks(markdown: string): MarkdownParseResult {
     }
 
     // Tabela no formato GFM
-    if (line.includes('|') && /^\s*\|?[-:\s|]+\|[-:\s|]*$/.test(lines[i + 1] || '')) {
+    // Atenção ao escrever a classe de caracteres abaixo: o Tailwind varre
+    // estes arquivos procurando nomes de classe e trata um colchete iniciado
+    // por hífen e dois-pontos como propriedade CSS arbitrária, o que gera uma
+    // regra inválida no bundle e um aviso a cada build. Por isso o hífen vem
+    // por último, e não no começo.
+    if (line.includes('|') && /^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(lines[i + 1] || '')) {
       const header = splitTableRow(line);
       i += 2;
       const rows: string[][] = [];
