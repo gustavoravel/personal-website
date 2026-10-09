@@ -398,4 +398,5 @@ export { sanitizeHref };
  * único compilado para JavaScript antes de rodar no Node).
  */
 export { postFromMarkdown } from './postFromMarkdown';
+export { SITE_URL } from './seo';
 export { publishedPosts } from './post';

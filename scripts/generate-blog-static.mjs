@@ -69,7 +69,7 @@ async function main() {
   }
 
   const renderer = await loadRenderer();
-  const posts = await loadPosts(renderer);
+  const { posts } = await loadPosts(renderer);
   const shell = await readFile(path.join(DIST, 'index.html'), 'utf8');
 
   const pages = renderer.buildStaticPages(posts);

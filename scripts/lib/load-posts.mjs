@@ -5,19 +5,23 @@ import path from 'node:path';
 /**
  * Reúne os artigos do blog das três origens possíveis e resolve conflitos.
  *
- * Origens, da que manda mais para a que manda menos quando o `slug` repete:
+ * Origens, da que manda MAIS para a que manda menos quando o `slug` repete:
  *
- *  1. `content/posts.json` — exportado do editor de blocos no `/admin`.
- *     Ganha de todas: é onde um artigo é ajustado à mão. Esse é o caminho de
- *     "promoção": se a automação escreveu um artigo e você quis remontar os
- *     blocos no editor, importe o `.md`, exporte o `posts.json` e a sua versão
- *     passa a valer.
+ *  1. **Supabase** — é onde você escreve e publica, pelo editor do `/admin`.
+ *     Decisão de out/2026: publicar no painel basta, sem exportar arquivo.
  *  2. `content/artigos/*.md` — artigos como arquivo de texto. É o que a
- *     automação de escrita produz, revisado via Pull Request.
- *  3. Supabase — artigos escritos direto no `/admin` em outro computador.
+ *     automação de escrita produz, revisado via Pull Request. Esses artigos
+ *     não existem no banco, então aparecem normalmente; o Supabase só ganha
+ *     deles se você importar o `.md` no editor e publicar por lá.
+ *  3. `content/posts.json` — exportação do editor. Virou reserva: segura o
+ *     blog quando o build roda sem o banco. Se divergir, o build avisa.
  *
- * Nenhuma origem é obrigatória. Sem nenhuma delas, o blog fica vazio e o
- * build avisa, em vez de falhar.
+ * O preço dessa ordem: o plano gratuito do Supabase pausa o projeto sozinho, e
+ * um build feito com ele fora do ar não enxerga os artigos que só existem lá.
+ * Daí as duas proteções: o keepalive em
+ * `.github/workflows/supabase-keepalive.yml` e a trava em
+ * `generate-blog-data.mjs`, que recusa publicar uma lista menor quando o banco
+ * não respondeu.
  */
 
 const ROOT = process.cwd();
@@ -60,7 +64,16 @@ async function fromMarkdownFiles(renderer) {
   const dir = path.join(ROOT, 'content', 'artigos');
   if (!existsSync(dir)) return [];
 
-  const files = (await readdir(dir)).filter((name) => /\.mdx?$/i.test(name));
+  const files = (await readdir(dir)).filter(
+    (name) =>
+      /\.mdx?$/i.test(name) &&
+      // Documentação e arquivos auxiliares não são artigos. Sem isto o README
+      // da pasta virava um artigo publicado, com página própria e entrada no
+      // sitemap.
+      !/^(readme|_)/i.test(name) &&
+      !name.startsWith('.')
+  );
+
   const posts = [];
 
   for (const file of files) {
@@ -98,10 +111,18 @@ async function fromPostsJson() {
   }
 }
 
+/**
+ * Lê o banco. Devolve também `ok`: a trava de segurança do build depende de
+ * saber a diferença entre "o banco disse que não há artigos" e "o banco não
+ * respondeu".
+ */
 async function fromSupabase() {
   const url = await readEnv('VITE_SUPABASE_URL');
   const key = await readEnv('VITE_SUPABASE_ANON_KEY');
-  if (!url || !key) return [];
+  if (!url || !key) {
+    console.warn('[blog] Sem VITE_SUPABASE_URL/ANON_KEY; o banco não foi consultado.');
+    return { posts: [], ok: false };
+  }
 
   try {
     const response = await fetch(
@@ -110,15 +131,47 @@ async function fromSupabase() {
     );
     if (!response.ok) {
       console.warn(`[blog] Supabase respondeu ${response.status}; ignorando essa origem.`);
-      return [];
+      return { posts: [], ok: false };
     }
     const rows = await response.json();
     if (rows.length > 0) console.log(`[blog] ${rows.length} artigo(s) no Supabase`);
-    return rows.map(rowToPost);
+    return { posts: rows.map(rowToPost), ok: true };
   } catch (error) {
     console.warn(`[blog] Supabase inacessível (${error.message}); ignorando essa origem.`);
-    return [];
+    console.warn('[blog] Se o projeto estiver pausado, reative em https://supabase.com/dashboard');
+    return { posts: [], ok: false };
   }
+}
+
+/**
+ * Avisa quando o `posts.json` discorda do banco.
+ *
+ * Não é erro: o banco manda. Mas é esse arquivo que segura o blog se o
+ * Supabase estiver fora no próximo build, então vale saber que envelheceu.
+ */
+function avisarDivergencias(json, supabasePosts) {
+  const noBanco = new Map(supabasePosts.map((post) => [post.slug, post]));
+
+  const divergentes = json.filter((post) => {
+    const remoto = noBanco.get(post.slug);
+    return remoto && Boolean(remoto.isPublished) !== Boolean(post.isPublished);
+  });
+
+  if (divergentes.length === 0) return;
+
+  console.warn(
+    `[blog] ${divergentes.length} artigo(s) com estado diferente em content/posts.json ` +
+      'e no Supabase. Vale o Supabase; a exportação está velha:'
+  );
+  divergentes.forEach((post) => {
+    const remoto = noBanco.get(post.slug);
+    console.warn(
+      `[blog]   - ${post.slug}: posts.json diz ` +
+        `${post.isPublished ? 'publicado' : 'rascunho'}, banco diz ` +
+        `${remoto.isPublished ? 'publicado' : 'rascunho'}`
+    );
+  });
+  console.warn('[blog] Para atualizar: /admin > Blog > "Exportar para o build".');
 }
 
 export async function loadPosts(renderer) {
@@ -129,9 +182,9 @@ export async function loadPosts(renderer) {
   ]);
 
   // Inserido do que manda menos para o que manda mais: o último a escrever o
-  // mesmo slug é quem fica.
+  // mesmo slug é quem fica. Por isso o Supabase entra por último.
   const bySlug = new Map();
-  [...supabase, ...markdown, ...json].forEach((post) => {
+  [...json, ...markdown, ...supabase.posts].forEach((post) => {
     if (post?.slug) bySlug.set(post.slug, post);
   });
 
@@ -140,5 +193,8 @@ export async function loadPosts(renderer) {
   );
 
   console.log(`[blog] ${posts.length} artigo(s) no total depois de resolver os slugs repetidos.`);
-  return posts;
+
+  avisarDivergencias(json, supabase.posts);
+
+  return { posts, supabaseOk: supabase.ok };
 }
