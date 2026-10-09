@@ -92,9 +92,14 @@ const privacyBlocks = (settings: SiteSettings): Block[] => [
     ]
   },
   {
-    heading: '7. Cookies',
+    heading: '7. Cookies e medição de acesso',
     paragraphs: [
-      'Esta página não usa cookies de publicidade nem rastreamento de terceiros para te seguir por outros sites. Se em algum momento eu passar a medir acessos, será com ferramenta que não identifica você individualmente, e este texto será atualizado antes.'
+      'Este site não usa cookies de publicidade e não te segue por outros sites. Nada aqui serve para te mostrar anúncio.',
+      'Eu meço quantas pessoas visitam o site e quais páginas elas leem, usando o Google Analytics. Isso só acontece se você autorizar no aviso que aparece na primeira visita. Se você recusar, ou não responder, nada é carregado e nenhum dado é enviado.',
+      'Quando você autoriza, o Google Analytics grava cookies no seu navegador e recebe o endereço de páginas visitadas, tempo de visita, tipo de aparelho, navegador e região aproximada. O seu endereço de internet (IP) é encurtado antes de ser processado, de propósito, para não servir para te identificar. Eu não envio para lá o seu nome, e-mail ou telefone, e não consigo saber quem é você individualmente nesses relatórios.',
+      'Para mudar de ideia depois, limpe os dados do site no seu navegador: o aviso aparece de novo e você pode responder diferente. Ao recusar, os cookies de medição que estiverem gravados são apagados.',
+      'Além disso, o site guarda no seu próprio navegador algumas preferências e uma cópia do que você digita nos formulários, para você não perder o que escreveu. Essa informação fica no seu aparelho e não é enviada para mim por esse mecanismo.',
+      'Se um dia eu trocar ou acrescentar alguma ferramenta de medição, este texto é atualizado e o aviso de autorização volta a aparecer.'
     ]
   },
   {

@@ -14,3 +14,42 @@
 [build.environment]
   # O gerador usa fetch nativo e a API de build do Vite: precisa de Node 18+.
   NODE_VERSION = "22"
+
+# Cabeçalhos de segurança.
+#
+# O Netlify já serve HTTPS e redireciona o HTTP para ele; o que falta é o HSTS,
+# que manda o navegador NUNCA MAIS tentar http:// neste domínio. Sem ele, a
+# primeira visita digitada como "gustavoravel.com.br" ainda sai em HTTP antes
+# de ser redirecionada, e é nessa primeira requisição que dá para interceptar.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # 2 anos, incluindo subdomínios. `preload` deixa a lista do Chrome possível,
+    # mas só inscreva o domínio em hstspreload.org quando tiver certeza de que
+    # nenhum subdomínio vai precisar de HTTP — a remoção da lista é lenta.
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    # Impede o navegador de "adivinhar" o tipo do arquivo, o que já serviu para
+    # fazer um upload de imagem ser executado como script.
+    X-Content-Type-Options = "nosniff"
+    # Ninguém embute este site num iframe: defesa contra clickjacking, em que a
+    # página é sobreposta por outra para roubar o clique.
+    X-Frame-Options = "DENY"
+    # Ao sair do site, manda só o domínio como origem — e nada da URL completa,
+    # que pode conter o endereço de um artigo ou parâmetro.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Nada aqui usa câmera, microfone nem localização. Negar explicitamente
+    # impede que um script de terceiro peça essas permissões em seu nome.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+
+# Os arquivos com hash no nome nunca mudam de conteúdo: cache longo e imutável.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# A lista de artigos muda a cada publicação: precisa ser revalidada sempre,
+# senão o visitante com o arquivo em cache não vê o artigo novo.
+[[headers]]
+  for = "/blog-data.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

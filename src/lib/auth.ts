@@ -1,5 +1,5 @@
 import type { Session, User } from '@supabase/supabase-js';
-import { isSupabaseConfigured, supabase } from './supabase';
+import { getSupabase, isSupabaseConfigured } from './supabase';
 
 export type AuthResult = { user: User | null; error: string | null };
 
@@ -8,6 +8,7 @@ export type AuthResult = { user: User | null; error: string | null };
  * Use isto para decidir se o painel admin pode abrir.
  */
 export async function getCurrentUser(): Promise<User | null> {
+  const supabase = await getSupabase();
   if (!supabase) return null;
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
@@ -18,6 +19,7 @@ export async function signInWithEmail(
   email: string,
   password: string
 ): Promise<AuthResult> {
+  const supabase = await getSupabase();
   if (!supabase) {
     return {
       user: null,
@@ -37,6 +39,7 @@ export async function signInWithEmail(
 }
 
 export async function signOut(): Promise<void> {
+  const supabase = await getSupabase();
   if (!supabase) return;
   await supabase.auth.signOut();
 }
@@ -47,18 +50,35 @@ export async function signOut(): Promise<void> {
 export function onAuthChange(
   callback: (session: Session | null) => void
 ): () => void {
-  if (!supabase) {
-    callback(null);
-    return () => undefined;
-  }
+  // O cliente agora chega por `import()`, então a inscrição é assíncrona. A
+  // função segue devolvendo o cancelamento de forma síncrona (é o que o
+  // `useEffect` do painel espera): se o cancelamento acontecer antes do
+  // download terminar, `cancelado` evita inscrever num componente que já saiu
+  // da tela.
+  let cancelado = false;
+  let cancelar: (() => void) | null = null;
 
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    callback(session);
+  void getSupabase().then((supabase) => {
+    if (cancelado) return;
+
+    if (!supabase) {
+      callback(null);
+      return;
+    }
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      callback(session);
+    });
+
+    cancelar = () => subscription.unsubscribe();
   });
 
-  return () => subscription.unsubscribe();
+  return () => {
+    cancelado = true;
+    cancelar?.();
+  };
 }
 
 export { isSupabaseConfigured };

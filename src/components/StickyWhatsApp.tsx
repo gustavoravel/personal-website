@@ -27,7 +27,7 @@ export const StickyWhatsApp: React.FC<StickyWhatsAppProps> = ({ settings, onStar
       <button
         onClick={() => openWhatsApp(settings, settings.whatsappWelcomeMessage, 'barra-fixa-mobile')}
         aria-label={hasWhatsApp(settings) ? 'Falar com Gustavo no WhatsApp' : 'Ir para o formulário de contato'}
-        className="w-14 bg-emerald-600 text-white rounded-xl flex items-center justify-center shrink-0"
+        className="w-14 bg-emerald-700 text-white rounded-xl flex items-center justify-center shrink-0"
       >
         <WhatsAppIcon className="w-6 h-6" />
       </button>

@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { DiagnosticQuestion, Plan, SiteSettings } from '../types';
 import { AppStore } from '../services/store';
 import { openWhatsApp, postLead, isLeadEndpointConfigured } from '../lib/contact';
+import {
+  formatarTelefone,
+  validarContato,
+  verificarAntiSpam,
+  type ErrosContato,
+} from '../lib/formGuard';
 import { WhatsAppIcon } from './icons/WhatsAppIcon';
 import { trackLeadSubmit } from '../lib/analytics';
 import {
@@ -37,6 +43,10 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
   const [leadBusiness, setLeadBusiness] = useState('');
   const [consent, setConsent] = useState(false);
   const [sendState, setSendState] = useState<'idle' | 'sending' | 'error'>('idle');
+  const [erros, setErros] = useState<ErrosContato>({});
+  /** Mesma proteção do formulário de contato. Ver src/lib/formGuard.ts. */
+  const [armadilha, setArmadilha] = useState('');
+  const abertoEm = useRef(Date.now());
 
   const currentQ = questions[currentStep];
   const totalQuestions = questions.length;
@@ -100,7 +110,30 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!consent || sendState === 'sending') return;
+    if (sendState === 'sending') return;
+
+    // E-mail não é pedido aqui: o diagnóstico só precisa de nome e WhatsApp.
+    const encontrados = validarContato(
+      { name: leadName, whatsapp: leadWhatsApp, email: '' },
+      consent
+    );
+    setErros(encontrados);
+
+    if (Object.keys(encontrados).length > 0) {
+      const ordem: (keyof ErrosContato)[] = ['name', 'whatsapp', 'consent'];
+      const primeiro = ordem.find((campo) => encontrados[campo]);
+      if (primeiro) {
+        const sufixo = primeiro === 'name' ? 'name' : primeiro === 'whatsapp' ? 'whatsapp' : 'consent';
+        document.getElementById('diag-' + sufixo)?.focus();
+      }
+      return;
+    }
+
+    if (!verificarAntiSpam(armadilha, abertoEm.current)) {
+      // Robô: nada é enviado, e a tela segue como se tivesse dado certo.
+      setSendState('idle');
+      return;
+    }
 
     setSendState('sending');
 
@@ -257,7 +290,14 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
               </div>
             )}
 
-            <form onSubmit={handleSend} className="bg-surface-container-high p-6 rounded-2xl border border-outline-variant space-y-4">
+            <form
+              onSubmit={handleSend}
+              /* noValidate: a bolha nativa do navegador interceptava o envio
+                 antes da nossa validação, então as mensagens embaixo do campo
+                 nunca apareciam. Os `required` ficam, porque são eles que
+                 anunciam o campo como obrigatório para leitor de tela. */
+              noValidate
+              className="bg-surface-container-high p-6 rounded-2xl border border-outline-variant space-y-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 font-bold text-on-surface text-lg">
                   <WhatsAppIcon className="w-5 h-5 text-emerald-400" />
@@ -279,9 +319,19 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
                     required
                     autoComplete="name"
                     value={leadName}
-                    onChange={(e) => setLeadName(e.target.value)}
+                    onChange={(e) => {
+                      setLeadName(e.target.value);
+                      if (erros.name) setErros({ ...erros, name: undefined });
+                    }}
+                    aria-invalid={Boolean(erros.name)}
+                    aria-describedby={erros.name ? 'erro-diag-name' : undefined}
                     className={inputClass}
                   />
+                  {erros.name && (
+                    <p id="erro-diag-name" role="alert" className="mt-1.5 text-sm font-semibold text-amber-300">
+                      {erros.name}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -295,9 +345,20 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
                     autoComplete="tel"
                     placeholder="(11) 99999-9999"
                     value={leadWhatsApp}
-                    onChange={(e) => setLeadWhatsApp(e.target.value)}
+                    inputMode="numeric"
+                    onChange={(e) => {
+                      setLeadWhatsApp(formatarTelefone(e.target.value));
+                      if (erros.whatsapp) setErros({ ...erros, whatsapp: undefined });
+                    }}
+                    aria-invalid={Boolean(erros.whatsapp)}
+                    aria-describedby={erros.whatsapp ? 'erro-diag-whatsapp' : undefined}
                     className={inputClass}
                   />
+                  {erros.whatsapp && (
+                    <p id="erro-diag-whatsapp" role="alert" className="mt-1.5 text-sm font-semibold text-amber-300">
+                      {erros.whatsapp}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -315,20 +376,44 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
               </div>
 
               <div className="flex items-start gap-3">
+                {/* Campo-armadilha: invisível, fora da tabulação. Só robô preenche. */}
+                <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
+                  <label htmlFor="diag-site">Não preencha este campo</label>
+                  <input
+                    id="diag-site"
+                    name="site"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={armadilha}
+                    onChange={(e) => setArmadilha(e.target.value)}
+                  />
+                </div>
+
                 <input
                   id="diag-consent"
                   type="checkbox"
                   required
                   checked={consent}
-                  onChange={(e) => setConsent(e.target.checked)}
-                  className="mt-1 w-5 h-5 rounded bg-surface-container border-outline text-primary focus:ring-0 shrink-0"
+                  onChange={(e) => {
+                    setConsent(e.target.checked);
+                    if (erros.consent) setErros({ ...erros, consent: undefined });
+                  }}
+                  aria-invalid={Boolean(erros.consent)}
+                  aria-describedby={erros.consent ? 'erro-diag-consent' : undefined}
+                  className="mt-0.5 w-6 h-6 rounded bg-surface-container border-outline text-primary focus:ring-0 shrink-0"
                 />
                 <label htmlFor="diag-consent" className="text-base text-on-surface-variant leading-snug">
                   Concordo que Gustavo use estes dados apenas para me responder sobre este diagnóstico.{' '}
-                  <a href="#privacidade" className="text-primary hover:underline">
+                  <a href="/privacidade" className="text-primary hover:underline">
                     Política de Privacidade
                   </a>
                 </label>
+                {erros.consent && (
+                  <p id="erro-diag-consent" role="alert" className="mt-1 w-full text-sm font-semibold text-amber-300">
+                    {erros.consent}
+                  </p>
+                )}
               </div>
 
               {sendState === 'error' && (
@@ -341,8 +426,11 @@ export const DiagnosticChecklist: React.FC<DiagnosticChecklistProps> = ({
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   type="submit"
-                  disabled={!consent || sendState === 'sending'}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 text-base transition-colors disabled:opacity-50"
+                  /* Sem desabilitar por falta de consentimento: o visitante
+                     clica e recebe o motivo escrito, em vez de um botão
+                     apagado sem explicação. */
+                  disabled={sendState === 'sending'}
+                  className="bg-emerald-700 hover:bg-emerald-700 text-white font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 text-base transition-colors disabled:opacity-50"
                 >
                   <WhatsAppIcon className="w-5 h-5" />
                   <span>{sendState === 'sending' ? 'Enviando...' : 'Quero receber pelo WhatsApp'}</span>

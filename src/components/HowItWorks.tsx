@@ -51,7 +51,7 @@ export const HowItWorks: React.FC = () => {
                   <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
                     <IconComp className="w-6 h-6" />
                   </div>
-                  <span className="text-3xl font-extrabold text-on-surface-variant/30">{item.step}</span>
+                  <span className="text-3xl font-extrabold text-on-surface-variant/55">{item.step}</span>
                 </div>
 
                 <h3 className="text-xl font-bold text-on-surface leading-snug">{item.title}</h3>

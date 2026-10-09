@@ -90,7 +90,7 @@ export const AboutGustavo: React.FC<AboutGustavoProps> = ({ settings }) => {
 
             <button
               onClick={() => openWhatsApp(settings, 'Olá Gustavo! Li sua apresentação no site e quero tirar uma dúvida.', 'sobre')}
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-xl text-base transition-colors"
+              className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-700 text-white font-bold px-6 py-3.5 rounded-xl text-base transition-colors"
             >
               <WhatsAppIcon className="w-5 h-5" />
               <span>Conversar direto comigo</span>

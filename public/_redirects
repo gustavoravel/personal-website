@@ -1,5 +1,19 @@
-# Netlify: qualquer caminho que não seja um arquivo real cai no app React.
-# Necessário para /blog/meu-artigo funcionar ao ser aberto direto ou recarregado.
-# As páginas estáticas geradas em dist/blog/<slug>/index.html têm prioridade —
-# o Netlify serve o arquivo existente antes de aplicar esta regra.
-/*    /index.html   200
+# Netlify: encaminhamento de rotas.
+#
+# Arquivos que existem em dist/ são servidos ANTES destas regras — por isso as
+# páginas estáticas do blog (dist/blog/<slug>/index.html), os assets, o
+# sitemap.xml e o rss.xml continuam intactos.
+#
+# As rotas conhecidas caem no app React com status 200. Qualquer outro endereço
+# recebe a página 404 com status 404 de verdade, e não a home com 200: um
+# endereço inexistente respondendo 200 é o que o Google chama de "soft 404" e
+# faz ele indexar páginas que não existem.
+
+/                 /index.html   200
+/blog             /index.html   200
+/blog/*           /index.html   200
+/privacidade      /index.html   200
+/termos           /index.html   200
+/admin            /index.html   200
+
+/*                /404.html     404

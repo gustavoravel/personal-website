@@ -1,5 +1,5 @@
 import { Plan, CaseStudy, DiagnosticQuestion, BlogPost, EntryOffer, FAQItem, Lead, SiteSettings } from '../types';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { getSupabase, isSupabaseConfigured } from '../lib/supabase';
 
 /**
  * Tiers e preços.
@@ -314,12 +314,14 @@ export class AppStore {
 
   static savePlans(plans: Plan[]): void {
     localStorage.setItem(STORAGE_KEYS.PLANS, JSON.stringify(plans));
-    const client = supabase;
-    if (isSupabaseConfigured && client) {
-      plans.forEach(async (p) => {
-        await client.from('plans').upsert(p);
-      });
-    }
+
+    // O cliente do Supabase agora chega por `import()`, então a sincronia
+    // remota virou assíncrona. O localStorage acima já garantiu o dado, então
+    // esta parte pode acontecer depois sem travar a interface.
+    void getSupabase().then((client) => {
+      if (!client) return;
+      void client.from('plans').upsert(plans);
+    });
   }
 
   // Entry offer (bloco verde no topo da seção Preços)
@@ -369,15 +371,16 @@ export class AppStore {
   static savePosts(posts: BlogPost[]): void {
     localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
 
-    const client = supabase;
-    if (!isSupabaseConfigured || !client) return;
+    void getSupabase().then((client) => {
+      if (!client) return;
 
-    void client
-      .from('blog_posts')
-      .upsert(posts.map(postToRow))
-      .then(({ error }) => {
-        if (error) console.error('Não foi possível sincronizar os artigos:', error.message);
-      });
+      void client
+        .from('blog_posts')
+        .upsert(posts.map(postToRow))
+        .then(({ error }) => {
+          if (error) console.error('Não foi possível sincronizar os artigos:', error.message);
+        });
+    });
   }
 
   /**
@@ -434,8 +437,8 @@ export class AppStore {
    * Em caso de conflito no mesmo id, vence a versão editada por último.
    */
   static async fetchPosts(): Promise<BlogPost[] | null> {
-    const client = supabase;
-    if (!isSupabaseConfigured || !client) return null;
+    const client = await getSupabase();
+    if (!client) return null;
 
     const { data, error } = await client
       .from('blog_posts')
@@ -472,10 +475,11 @@ export class AppStore {
 
   static saveSettings(settings: SiteSettings): void {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-    const client = supabase;
-    if (isSupabaseConfigured && client) {
-      client.from('site_settings').upsert({ id: 'global', ...settings });
-    }
+
+    void getSupabase().then((client) => {
+      if (!client) return;
+      void client.from('site_settings').upsert({ id: 'global', ...settings });
+    });
   }
 
   // Leads
@@ -504,8 +508,10 @@ export class AppStore {
     const updated = [newLead, ...this.getLeads()];
     localStorage.setItem(STORAGE_KEYS.LEADS, JSON.stringify(updated));
 
-    const client = supabase;
-    if (!isSupabaseConfigured || !client) {
+    // Aqui vale esperar o download da biblioteca: é o envio do formulário,
+    // o visitante está vendo "Enviando..." e o lead não pode ser perdido.
+    const client = await getSupabase();
+    if (!client) {
       return { lead: newLead, savedRemotely: false };
     }
 
@@ -543,10 +549,10 @@ export class AppStore {
     const leads = this.getLeads().map((l) => (l.id === id ? { ...l, status } : l));
     localStorage.setItem(STORAGE_KEYS.LEADS, JSON.stringify(leads));
 
-    const client = supabase;
-    if (isSupabaseConfigured && client) {
-      client.from('leads').update({ status }).eq('id', id);
-    }
+    void getSupabase().then((client) => {
+      if (!client) return;
+      void client.from('leads').update({ status }).eq('id', id);
+    });
   }
 }
 

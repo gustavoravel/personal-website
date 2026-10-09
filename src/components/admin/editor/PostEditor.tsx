@@ -174,7 +174,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({
         <button
           type="button"
           onClick={() => save(true)}
-          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white"
+          className="flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-bold text-white"
         >
           <Save className="h-4 w-4" />
           <span>{draft.isPublished ? 'Salvar e manter publicado' : 'Publicar'}</span>

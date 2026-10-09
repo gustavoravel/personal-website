@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { SiteSettings } from '../types';
 import { AppStore } from '../services/store';
 import { openWhatsApp, hasWhatsApp, mailtoUrl, postLead, isLeadEndpointConfigured } from '../lib/contact';
@@ -6,6 +6,20 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import { Mail, MessageCircle, Send, CheckCircle2, User, Phone, Briefcase, Lock, AlertTriangle } from 'lucide-react';
 import { WhatsAppIcon } from './icons/WhatsAppIcon';
 import { trackLeadSubmit } from '../lib/analytics';
+import {
+  formatarTelefone,
+  validarContato,
+  verificarAntiSpam,
+  type ErrosContato,
+} from '../lib/formGuard';
+
+/** Erro embaixo do campo, anunciado por leitor de tela assim que aparece. */
+const MensagemDeErro: React.FC<{ id: string; texto?: string }> = ({ id, texto }) =>
+  texto ? (
+    <p id={id} role="alert" className="mt-2 text-sm font-semibold text-amber-300">
+      {texto}
+    </p>
+  ) : null;
 
 interface ContactSectionProps {
   settings: SiteSettings;
@@ -19,10 +33,35 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
   const [message, setMessage] = useState('');
   const [consent, setConsent] = useState(false);
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [erros, setErros] = useState<ErrosContato>({});
+  /** Campo-armadilha: só robô preenche. Ver src/lib/formGuard.ts. */
+  const [armadilha, setArmadilha] = useState('');
+  /** Momento em que o formulário apareceu, para medir envio instantâneo. */
+  const abertoEm = useRef(Date.now());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!consent || status === 'sending') return;
+    if (status === 'sending') return;
+
+    const encontrados = validarContato({ name, whatsapp, email }, consent);
+    setErros(encontrados);
+
+    if (Object.keys(encontrados).length > 0) {
+      // Leva o foco ao primeiro campo com erro: no celular o erro pode estar
+      // fora da tela, e sem isso o visitante clica em enviar sem entender por
+      // que nada acontece.
+      const ordem: (keyof ErrosContato)[] = ['name', 'whatsapp', 'email', 'consent'];
+      const primeiro = ordem.find((campo) => encontrados[campo]);
+      if (primeiro) document.getElementById('contact-' + primeiro)?.focus();
+      return;
+    }
+
+    // Robô: finge sucesso e não envia nada. Dizer "você é um robô" só ensina
+    // o robô a contornar a verificação.
+    if (!verificarAntiSpam(armadilha, abertoEm.current)) {
+      setStatus('sent');
+      return;
+    }
 
     setStatus('sending');
 
@@ -89,7 +128,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
                   <div className="text-base font-bold text-on-surface">Seus dados ficam comigo</div>
                   <div className="text-base text-on-surface-variant">
                     Uso só para te responder. Nunca repasso a ninguém.{' '}
-                    <a href="#privacidade" className="text-primary hover:underline">
+                    {/* /privacidade e nao #privacidade: o site passou a usar rota por
+                        caminho, e o link antigo com hash nao levava a lugar nenhum. */}
+                    <a href="/privacidade" className="text-primary hover:underline">
                       Ver política de privacidade
                     </a>
                   </div>
@@ -114,7 +155,16 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
 
           <div>
             {status !== 'sent' ? (
-              <form onSubmit={handleSubmit} className="space-y-5 bg-surface-container p-6 md:p-8 rounded-2xl border border-outline-variant">
+              <form
+                onSubmit={handleSubmit}
+                /* noValidate: a validação nativa do navegador mostra uma bolha
+                   que desaparece sozinha, não é lida de forma confiável por
+                   leitor de tela e vem em inglês em alguns aparelhos. Ela
+                   também interceptava o envio ANTES do nosso handler, então as
+                   mensagens embaixo do campo nunca apareciam. Os atributos
+                   `required` ficam, porque são eles que anunciam o campo como
+                   obrigatório para a tecnologia assistiva. */
+                noValidate className="space-y-5 bg-surface-container p-6 md:p-8 rounded-2xl border border-outline-variant">
                 {/* Visível só em desenvolvimento: o visitante nunca vê isto.
                     Sem VITE_LEAD_ENDPOINT nenhum lead chega até você. */}
                 {import.meta.env.DEV && !isLeadEndpointConfigured && !isSupabaseConfigured && (
@@ -138,10 +188,16 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
                       autoComplete="name"
                       placeholder="Como você quer ser chamado"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        if (erros.name) setErros({ ...erros, name: undefined });
+                      }}
+                      aria-invalid={Boolean(erros.name)}
+                      aria-describedby={erros.name ? 'erro-contact-name' : undefined}
                       className={inputClass}
                     />
                   </div>
+                  <MensagemDeErro id="erro-contact-name" texto={erros.name} />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -158,10 +214,17 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
                         autoComplete="tel"
                         placeholder="(11) 99999-9999"
                         value={whatsapp}
-                        onChange={(e) => setWhatsapp(e.target.value)}
+                        inputMode="numeric"
+                        onChange={(e) => {
+                          setWhatsapp(formatarTelefone(e.target.value));
+                          if (erros.whatsapp) setErros({ ...erros, whatsapp: undefined });
+                        }}
+                        aria-invalid={Boolean(erros.whatsapp)}
+                        aria-describedby={erros.whatsapp ? 'erro-contact-whatsapp' : undefined}
                         className={inputClass}
                       />
                     </div>
+                    <MensagemDeErro id="erro-contact-whatsapp" texto={erros.whatsapp} />
                   </div>
 
                   <div>
@@ -176,10 +239,16 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
                         autoComplete="email"
                         placeholder="seu@email.com"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (erros.email) setErros({ ...erros, email: undefined });
+                        }}
+                        aria-invalid={Boolean(erros.email)}
+                        aria-describedby={erros.email ? 'erro-contact-email' : undefined}
                         className={inputClass}
                       />
                     </div>
+                    <MensagemDeErro id="erro-contact-email" texto={erros.email} />
                   </div>
                 </div>
 
@@ -214,22 +283,44 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
                   />
                 </div>
 
+                {/* Campo-armadilha: invisivel e fora da ordem de tabulacao, com
+                    rotulo proprio para leitor de tela nao anunciar campo orfao.
+                    Humano nao ve, robo preenche, e o envio e descartado. */}
+                <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
+                  <label htmlFor="contact-site">Nao preencha este campo</label>
+                  <input
+                    id="contact-site"
+                    name="site"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={armadilha}
+                    onChange={(e) => setArmadilha(e.target.value)}
+                  />
+                </div>
+
                 <div className="flex items-start gap-3 pt-1">
                   <input
                     id="contact-consent"
                     type="checkbox"
                     required
                     checked={consent}
-                    onChange={(e) => setConsent(e.target.checked)}
-                    className="mt-1 w-5 h-5 rounded bg-surface-container border-outline text-primary focus:ring-0 shrink-0"
+                    onChange={(e) => {
+                      setConsent(e.target.checked);
+                      if (erros.consent) setErros({ ...erros, consent: undefined });
+                    }}
+                    aria-invalid={Boolean(erros.consent)}
+                    aria-describedby={erros.consent ? 'erro-contact-consent' : undefined}
+                    className="mt-0.5 w-6 h-6 rounded bg-surface-container border-outline text-primary focus:ring-0 shrink-0"
                   />
                   <label htmlFor="contact-consent" className="text-base text-on-surface-variant leading-snug">
                     Ao enviar, você concorda que eu use seus dados apenas para responder este contato.{' '}
-                    <a href="#privacidade" className="text-primary hover:underline">
+                    <a href="/privacidade" className="text-primary hover:underline">
                       Política de Privacidade
                     </a>
                   </label>
                 </div>
+                <MensagemDeErro id="erro-contact-consent" texto={erros.consent} />
 
                 {status === 'error' && (
                   <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 p-4 rounded-xl text-base flex items-start gap-3">
@@ -246,7 +337,10 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
                 <div className="flex flex-col sm:flex-row gap-3 pt-1">
                   <button
                     type="submit"
-                    disabled={!consent || status === 'sending'}
+                    /* Nao fica mais desabilitado por falta de consentimento:
+                       botao apagado sem explicacao faz o visitante achar que o
+                       site travou. Agora ele clica e recebe o motivo escrito. */
+                    disabled={status === 'sending'}
                     className="w-full sm:flex-1 bg-primary text-on-primary font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 text-base hover:scale-[1.02] transition-transform shadow-lg shadow-primary/20 disabled:opacity-50 disabled:hover:scale-100"
                   >
                     <Send className="w-5 h-5" />
@@ -262,7 +356,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
                         'formulario-contato'
                       )
                     }
-                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 text-base transition-colors"
+                    className="w-full sm:w-auto bg-emerald-700 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 text-base transition-colors"
                   >
                     <WhatsAppIcon className="w-5 h-5" />
                     <span>WhatsApp</span>
@@ -282,7 +376,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ settings }) => {
                   onClick={() =>
                     openWhatsApp(settings, `Olá Gustavo! Acabei de enviar o formulário no site. Meu nome é ${name || 'cliente'}.`, 'pos-envio-formulario')
                   }
-                  className="inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-3.5 rounded-xl font-bold text-base hover:bg-emerald-500 transition-colors"
+                  className="inline-flex items-center gap-2 bg-emerald-700 text-white px-6 py-3.5 rounded-xl font-bold text-base hover:bg-emerald-600 transition-colors"
                 >
                   <WhatsAppIcon className="w-5 h-5" />
                   <span>Não quero esperar, falar agora</span>

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { Plan, BlogPost, Lead, SiteSettings, EntryOffer } from './types';
 import { AppStore } from './services/store';
 import { Navbar } from './components/Navbar';
@@ -17,11 +17,23 @@ import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { StickyWhatsApp } from './components/StickyWhatsApp';
 import { BlogModule } from './components/blog/BlogModule';
-import { AdminDashboard } from './components/admin/AdminDashboard';
+/**
+ * O painel e o editor de blocos sao carregados sob demanda.
+ *
+ * Eles respondem por boa parte do JavaScript do site e sao usados por UMA
+ * pessoa: eu. Nao faz sentido o cliente no 4G baixar o editor de artigos para
+ * ler a pagina de precos. Com o import tardio, esse peso so desce em /admin.
+ */
+const AdminDashboard = lazy(() =>
+  import('./components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
+);
 import { LegalPage } from './components/legal/LegalPage';
 import { applyHead, homeHead } from './lib/seo';
 import { navigate, normalizeLegacyHash, routeFromLocation, type Route } from './lib/router';
 import { initAnalytics, trackPageView } from './lib/analytics';
+import { getConsent, onConsentChange } from './lib/consent';
+import { CookieConsent } from './components/CookieConsent';
+import { NotFoundPage } from './components/NotFoundPage';
 import {
   INITIAL_CASE_STUDIES,
   INITIAL_DIAGNOSTIC_QUESTIONS,
@@ -57,6 +69,12 @@ export function App() {
    * artigos.
    */
   const [sitePostsLoaded, setSitePostsLoaded] = useState(false);
+  /**
+   * Enquanto o visitante não responde ao aviso de medição, a barra fixa de
+   * WhatsApp do mobile fica escondida: as duas são fixas no rodapé e uma
+   * cobriria a outra justamente num celular, que é onde este público lê.
+   */
+  const [consentimentoPendente, setConsentimentoPendente] = useState(false);
   const [leads, setLeads] = useState<Lead[]>(() => AppStore.getLeads());
   const [settings, setSettings] = useState<SiteSettings>(() => AppStore.getSettings());
 
@@ -72,22 +90,32 @@ export function App() {
   useEffect(() => {
     reloadFromStore();
 
-    // O que o visitante vê.
+    // O que o visitante vê. Vem de blog-data.json, gerado no build: um
+    // arquivo estático, sem biblioteca nenhuma.
     void AppStore.fetchPublishedPosts().then((published) => {
       setSitePosts(published);
       setSitePostsLoaded(true);
-    });
-
-    // Quando o Supabase está configurado, ele é a cópia compartilhada dos
-    // artigos: sem isto, um artigo escrito em outro computador não aparece.
-    void AppStore.fetchPosts().then((remote) => {
-      if (remote) setPosts(remote);
     });
   }, [reloadFromStore]);
 
   useEffect(() => {
     if (route.name === 'home') reloadFromStore();
   }, [route.name, reloadFromStore]);
+
+  /**
+   * Busca os artigos do Supabase SÓ no painel.
+   *
+   * Lá é onde ver rascunho e artigo escrito em outro computador importa. Fazer
+   * isso na montagem para todo visitante obrigava a baixar o cliente do
+   * Supabase (57 kB comprimidos) na página inicial, sem nenhum uso — o blog
+   * público lê de blog-data.json.
+   */
+  useEffect(() => {
+    if (route.name !== 'admin') return;
+    void AppStore.fetchPosts().then((remote) => {
+      if (remote) setPosts(remote);
+    });
+  }, [route.name]);
 
   // popstate cobre o botão "voltar" do navegador e a navegação interna,
   // que dispara o mesmo evento depois do pushState.
@@ -107,6 +135,13 @@ export function App() {
   // navegação se formos nós a avisar.
   useEffect(() => {
     initAnalytics();
+    setConsentimentoPendente(getConsent() === 'pendente');
+    // Reavalia no clique do banner: aceitar passa a medir na hora, e recusar
+    // depois de ter aceito desliga o envio e limpa os cookies.
+    return onConsentChange(() => {
+      initAnalytics();
+      setConsentimentoPendente(false);
+    });
   }, []);
 
   useEffect(() => {
@@ -231,6 +266,14 @@ export function App() {
           />
         )}
 
+        {route.name === 'naoencontrado' && (
+          <NotFoundPage
+            settings={settings}
+            onBackToHome={() => go({ name: 'home' })}
+            onOpenBlog={() => go({ name: 'blog' })}
+          />
+        )}
+
         {isLegalView && (
           <LegalPage
             document={route.name === 'privacidade' ? 'privacidade' : 'termos'}
@@ -240,6 +283,13 @@ export function App() {
         )}
 
         {route.name === 'admin' && (
+          <Suspense
+            fallback={
+              <p className="px-gutter pt-32 text-center text-on-surface-variant" role="status">
+                Carregando o painel…
+              </p>
+            }
+          >
           <AdminDashboard
             plans={plans}
             entryOffer={entryOffer}
@@ -252,6 +302,7 @@ export function App() {
             onUpdateSettings={setSettings}
             onBackToHome={() => goHomeAndScrollTo('#planos')}
           />
+          </Suspense>
         )}
       </main>
 
@@ -262,8 +313,13 @@ export function App() {
       />
 
       {/* Botão fixo de WhatsApp no mobile — canal onde o cliente já vive */}
-      {route.name !== 'admin' && (
+      {route.name !== 'admin' && !consentimentoPendente && (
         <StickyWhatsApp settings={settings} onStartDiagnostic={scrollToDiagnostic} />
+      )}
+
+      {/* Aviso de medição de acesso. Fora do /admin, que é só meu. */}
+      {route.name !== 'admin' && (
+        <CookieConsent onOpenPrivacy={() => go({ name: 'privacidade' })} />
       )}
     </div>
   );

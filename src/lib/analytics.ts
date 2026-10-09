@@ -12,6 +12,7 @@
  * igual e nada é enviado.
  */
 import ReactGA from 'react-ga4';
+import { getConsent, limparCookiesDeMedicao } from './consent';
 
 export const GA_MEASUREMENT_ID: string = import.meta.env.VITE_GA_MEASUREMENT_ID || '';
 
@@ -22,21 +23,55 @@ const isEnabled = isAnalyticsConfigured && !import.meta.env.DEV;
 
 let initialized = false;
 
+/**
+ * Inicializa o GA **somente com consentimento**.
+ *
+ * O GA grava cookie e manda dado para terceiro, o que exige base legal na
+ * LGPD. Enquanto a resposta estiver pendente ou for "não", nada é carregado —
+ * e quem recusou depois de ter aceito tem os cookies apagados, senão
+ * "recusar" não teria efeito nenhum na prática.
+ *
+ * Chame de novo quando o consentimento mudar: a função é idempotente.
+ */
 export function initAnalytics(): void {
-  if (initialized || !isEnabled) return;
-  ReactGA.initialize(GA_MEASUREMENT_ID);
+  if (!isEnabled) return;
+
+  const consentimento = getConsent();
+
+  if (consentimento !== 'aceito') {
+    if (initialized) {
+      // Já estava medindo e o visitante mudou de ideia. Não existe "desligar"
+      // no react-ga4, então bloqueamos o envio pela chave que o próprio
+      // gtag respeita e limpamos o que ficou gravado.
+      (window as unknown as Record<string, unknown>)[`ga-disable-${GA_MEASUREMENT_ID}`] = true;
+    }
+    limparCookiesDeMedicao();
+    return;
+  }
+
+  (window as unknown as Record<string, unknown>)[`ga-disable-${GA_MEASUREMENT_ID}`] = false;
+
+  if (initialized) return;
+
+  ReactGA.initialize(GA_MEASUREMENT_ID, {
+    gaOptions: {
+      // Encurta o IP antes de qualquer processamento: menos dado pessoal
+      // trafegado para a mesma informação útil (quantos acessos, de onde).
+      anonymizeIp: true,
+    },
+  });
   initialized = true;
 }
 
 /** Chamado a cada troca de rota; `path` já vem com a query/hash quando houver. */
 export function trackPageView(path: string, title?: string): void {
-  if (!initialized) return;
+  if (!initialized || getConsent() !== 'aceito') return;
   ReactGA.send({ hitType: 'pageview', page: path, title });
 }
 
 /** Para marcar as ações que valem dinheiro: clique no WhatsApp, envio do diagnóstico. */
 export function trackEvent(name: string, params?: Record<string, unknown>): void {
-  if (!initialized) return;
+  if (!initialized || getConsent() !== 'aceito') return;
   ReactGA.event(name, params);
 }
 

@@ -80,6 +80,32 @@ async function main() {
     await writeFile(target, buildPageHtml(shell, page), 'utf8');
   }
 
+  // 404.html: é o arquivo que o Netlify entrega (com status 404 de verdade)
+  // para qualquer endereço desconhecido, conforme a última regra de
+  // public/_redirects. Sem ele, a regra apontaria para o vazio.
+  await writeFile(
+    path.join(DIST, '404.html'),
+    buildPageHtml(shell, {
+      head: renderer.renderHead({
+        title: 'Página não encontrada | Gustavo Ravel',
+        description: 'Este endereço não existe ou mudou de lugar.',
+        canonical: `${renderer.SITE_URL}/`,
+        noindex: true,
+      }),
+      // Corpo mínimo para quem não executa JavaScript. Com JavaScript, o React
+      // monta a página 404 completa, com os caminhos de saída.
+      body:
+        '<div style="padding:96px 24px;text-align:center;font-family:Inter,system-ui,sans-serif">' +
+        '<p style="color:#9dcaff;font-weight:700;letter-spacing:.12em;font-size:13px">ERRO 404</p>' +
+        '<h1 style="color:#f0eeed;font-size:32px;margin:16px 0">Esta página não existe</h1>' +
+        '<p style="color:#d4d9e2;font-size:17px">O endereço pode estar com algum caractere trocado, ' +
+        'ou o link que você clicou está desatualizado.</p>' +
+        '<p style="margin-top:24px"><a href="/" style="color:#9dcaff">Ir para o início</a> · ' +
+        '<a href="/blog" style="color:#9dcaff">Ver as dicas</a></p></div>',
+    }),
+    'utf8'
+  );
+
   await writeFile(path.join(DIST, 'sitemap.xml'), renderer.buildSitemap(posts), 'utf8');
   await writeFile(path.join(DIST, 'rss.xml'), renderer.buildRssFeed(posts), 'utf8');
 

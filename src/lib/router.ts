@@ -11,6 +11,7 @@
 
 export type Route =
   | { name: 'home'; hash?: string }
+  | { name: 'naoencontrado' }
   | { name: 'blog' }
   | { name: 'post'; slug: string }
   | { name: 'privacidade' }
@@ -30,6 +31,10 @@ export function routeToPath(route: Route): string {
   switch (route.name) {
     case 'home':
       return route.hash ? `/#${route.hash}` : '/';
+    case 'naoencontrado':
+      // Preserva o endereço errado na barra: trocar por /404 esconderia do
+      // visitante (e de você, no relatório) qual link está quebrado.
+      return window.location.pathname;
     case 'blog':
       return '/blog';
     case 'post':
@@ -63,7 +68,10 @@ export function routeFromLocation(): Route {
     return { name: 'home', hash: hash || undefined };
   }
 
-  return { name: 'home' };
+  // Endereço desconhecido NÃO é a home. Devolver a home aqui criava um
+  // "soft 404": o Google recebia status 200 com conteúdo de outra página e
+  // passava a indexar endereços que não existem.
+  return { name: 'naoencontrado' };
 }
 
 /**

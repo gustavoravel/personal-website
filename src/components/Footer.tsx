@@ -67,7 +67,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, setCurrentView, onNavi
                 <button
                   key={idx}
                   onClick={() => onNavigateHome(link.hash)}
-                  className="text-base text-left hover:text-primary transition-colors w-fit"
+                  className="text-base text-left hover:text-primary transition-colors w-fit py-2 -my-0.5"
                 >
                   {link.label}
                 </button>
@@ -82,7 +82,7 @@ export const Footer: React.FC<FooterProps> = ({ settings, setCurrentView, onNavi
                   event.preventDefault();
                   setCurrentView('blog');
                 }}
-                className="text-base text-left hover:text-primary transition-colors w-fit"
+                className="text-base text-left hover:text-primary transition-colors w-fit py-2 -my-0.5"
               >
                 Dicas para o seu atendimento
               </a>
@@ -94,13 +94,13 @@ export const Footer: React.FC<FooterProps> = ({ settings, setCurrentView, onNavi
             <div className="flex flex-col gap-2.5">
               <button
                 onClick={() => setCurrentView('privacidade')}
-                className="text-base text-left hover:text-primary transition-colors w-fit"
+                className="text-base text-left hover:text-primary transition-colors w-fit py-2 -my-0.5"
               >
                 Política de Privacidade
               </button>
               <button
                 onClick={() => setCurrentView('termos')}
-                className="text-base text-left hover:text-primary transition-colors w-fit"
+                className="text-base text-left hover:text-primary transition-colors w-fit py-2 -my-0.5"
               >
                 Termos de Serviço
               </button>
