@@ -63,11 +63,6 @@ Não escreva só da trilha A. WhatsApp é a porta de entrada, não o assunto.
 Esta trilha fala do caminho que o cliente percorre do primeiro "oi" até o
 pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 
-- [ ] Cliente pediu orçamento e não respondeu: o que fazer — termo principal: `cliente pediu orçamento e não respondeu`
-      Ângulo: a dor mais universal e menos trabalhada. A maioria desiste no
-      primeiro silêncio. Mostrar a sequência de retomada e por que ela
-      funciona melhor quando acontece sozinha, em dia fixo.
-
 - [ ] Como parar de refazer o mesmo orçamento toda semana — termo principal: `como fazer orçamento rápido para cliente`
       Ângulo: ela monta cada orçamento do zero no WhatsApp. Mostrar o modelo
       reaproveitável e o que precisa estar nele para o cliente decidir sem
@@ -108,6 +103,7 @@ pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 - [x] Atendimento automático no WhatsApp: 3 níveis — `/blog/atendimento-automatico-no-whatsapp-3-niveis`
 - [x] Organizar o negócio sozinho: 3 tarefas certas — `/blog/organizar-o-negocio-sozinho-3-tarefas-certas`
 - [x] Como colocar sua agenda online sem pagar mensalidade (Trilha A) — `/blog/agenda-online-para-pequeno-negocio`
+- [x] Cliente pediu orçamento e não respondeu: o que fazer (Trilha B) — `/blog/cliente-pediu-orcamento-e-nao-respondeu`
 
 ---
 
