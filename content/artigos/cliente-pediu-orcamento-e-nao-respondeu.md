@@ -36,7 +36,7 @@ Antes do passo a passo, três atitudes que costumam afastar o cliente:
 - **Baixar o preço no primeiro silêncio.** Você ensina que o primeiro valor era negociável, e talvez o preço nem fosse o motivo.
 - **Mandar várias mensagens seguidas no mesmo dia.** Uma retomada é um convite. Três em sequência viram pressão.
 
-## A sequência de retomada em três mensagens
+## Cliente pediu orçamento e não respondeu: a sequência em três mensagens
 
 A ideia é simples: cada mensagem dá um motivo diferente para a pessoa responder, e o espaço entre elas é de alguns dias. Ajuste os intervalos ao seu ritmo de trabalho.
 
