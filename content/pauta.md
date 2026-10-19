@@ -34,10 +34,6 @@ Não escreva só da trilha A. WhatsApp é a porta de entrada, não o assunto.
 
 ## Trilha A — Ferramentas do dia a dia
 
-- [ ] Catálogo do WhatsApp Business: pare de mandar tabela de preço por foto — termo principal: `catálogo no whatsapp business`
-      Ângulo: quem manda print de tabela de preço perde venda porque a foto
-      fica velha e ninguém acha no meio da conversa. Passo a passo do catálogo.
-
 - [ ] Respostas rápidas do WhatsApp: as 5 que todo negócio deveria ter — termo principal: `respostas rápidas whatsapp business`
       Ângulo: ela responde as mesmas três perguntas o dia inteiro e não sabe
       que o aplicativo já resolve isso de graça. Entregar as 5 prontas para
@@ -104,6 +100,7 @@ pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 - [x] Organizar o negócio sozinho: 3 tarefas certas — `/blog/organizar-o-negocio-sozinho-3-tarefas-certas`
 - [x] Como colocar sua agenda online sem pagar mensalidade (Trilha A) — `/blog/agenda-online-para-pequeno-negocio`
 - [x] Cliente pediu orçamento e não respondeu: o que fazer (Trilha B) — `/blog/cliente-pediu-orcamento-e-nao-respondeu`
+- [x] Catálogo do WhatsApp Business: pare de mandar tabela de preço por foto (Trilha A) — `/blog/catalogo-no-whatsapp-business`
 
 ---
 
