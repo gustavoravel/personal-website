@@ -59,11 +59,6 @@ Não escreva só da trilha A. WhatsApp é a porta de entrada, não o assunto.
 Esta trilha fala do caminho que o cliente percorre do primeiro "oi" até o
 pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 
-- [ ] Como parar de refazer o mesmo orçamento toda semana — termo principal: `como fazer orçamento rápido para cliente`
-      Ângulo: ela monta cada orçamento do zero no WhatsApp. Mostrar o modelo
-      reaproveitável e o que precisa estar nele para o cliente decidir sem
-      voltar a perguntar.
-
 - [ ] As 4 perguntas que você deveria fazer antes de mandar um preço — termo principal: `o que perguntar antes de mandar orçamento`
       Ângulo: orçamento mandado cedo demais vira "vou pensar". Um formulário
       curto chega com a informação pronta e o atendimento começa adiantado.
@@ -101,6 +96,7 @@ pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 - [x] Como colocar sua agenda online sem pagar mensalidade (Trilha A) — `/blog/agenda-online-para-pequeno-negocio`
 - [x] Cliente pediu orçamento e não respondeu: o que fazer (Trilha B) — `/blog/cliente-pediu-orcamento-e-nao-respondeu`
 - [x] Catálogo do WhatsApp Business: pare de mandar tabela de preço por foto (Trilha A) — `/blog/catalogo-no-whatsapp-business`
+- [x] Como fazer orçamento rápido para cliente sem refazer tudo toda semana (Trilha B) — `/blog/como-fazer-orcamento-rapido-para-cliente`
 
 ---
 
