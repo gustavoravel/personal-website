@@ -34,11 +34,6 @@ Não escreva só da trilha A. WhatsApp é a porta de entrada, não o assunto.
 
 ## Trilha A — Ferramentas do dia a dia
 
-- [ ] Respostas rápidas do WhatsApp: as 5 que todo negócio deveria ter — termo principal: `respostas rápidas whatsapp business`
-      Ângulo: ela responde as mesmas três perguntas o dia inteiro e não sabe
-      que o aplicativo já resolve isso de graça. Entregar as 5 prontas para
-      copiar.
-
 - [ ] Mensagem de ausência: o que escrever para não parecer robô — termo principal: `mensagem de ausência whatsapp business`
       Ângulo: a mensagem padrão afasta cliente. Dar modelos por tipo de
       negócio e explicar o que não escrever.
@@ -97,6 +92,7 @@ pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 - [x] Cliente pediu orçamento e não respondeu: o que fazer (Trilha B) — `/blog/cliente-pediu-orcamento-e-nao-respondeu`
 - [x] Catálogo do WhatsApp Business: pare de mandar tabela de preço por foto (Trilha A) — `/blog/catalogo-no-whatsapp-business`
 - [x] Como fazer orçamento rápido para cliente sem refazer tudo toda semana (Trilha B) — `/blog/como-fazer-orcamento-rapido-para-cliente`
+- [x] Respostas rápidas do WhatsApp Business: as 5 que todo negócio deveria ter (Trilha A) — `/blog/respostas-rapidas-whatsapp-business`
 
 ---
 
