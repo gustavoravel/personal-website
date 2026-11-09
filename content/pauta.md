@@ -54,11 +54,6 @@ Não escreva só da trilha A. WhatsApp é a porta de entrada, não o assunto.
 Esta trilha fala do caminho que o cliente percorre do primeiro "oi" até o
 pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 
-- [ ] As 4 perguntas que você deveria fazer antes de mandar um preço — termo principal: `o que perguntar antes de mandar orçamento`
-      Ângulo: orçamento mandado cedo demais vira "vou pensar". Um formulário
-      curto chega com a informação pronta e o atendimento começa adiantado.
-      Puxa para o diagnóstico do site.
-
 - [ ] Onde o cliente desiste entre o orçamento e o fechamento — termo principal: `por que cliente não fecha orçamento`
       Ângulo: desenhar o caminho do cliente e marcar onde ele cai. É o
       conteúdo que explica, sem vender, o que o plano Completo faz.
@@ -93,6 +88,7 @@ pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 - [x] Catálogo do WhatsApp Business: pare de mandar tabela de preço por foto (Trilha A) — `/blog/catalogo-no-whatsapp-business`
 - [x] Como fazer orçamento rápido para cliente sem refazer tudo toda semana (Trilha B) — `/blog/como-fazer-orcamento-rapido-para-cliente`
 - [x] Respostas rápidas do WhatsApp Business: as 5 que todo negócio deveria ter (Trilha A) — `/blog/respostas-rapidas-whatsapp-business`
+- [x] O que perguntar antes de mandar orçamento: 4 perguntas que evitam o "vou pensar" (Trilha B) — `/blog/o-que-perguntar-antes-de-mandar-orcamento`
 
 ---
 
