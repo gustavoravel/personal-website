@@ -34,10 +34,6 @@ Não escreva só da trilha A. WhatsApp é a porta de entrada, não o assunto.
 
 ## Trilha A — Ferramentas do dia a dia
 
-- [ ] Mensagem de ausência: o que escrever para não parecer robô — termo principal: `mensagem de ausência whatsapp business`
-      Ângulo: a mensagem padrão afasta cliente. Dar modelos por tipo de
-      negócio e explicar o que não escrever.
-
 - [ ] WhatsApp pessoal e comercial no mesmo celular: como separar — termo principal: `whatsapp business e pessoal no mesmo celular`
       Ângulo: o medo concreto de perder as conversas ou o número ao trocar de
       aplicativo. Explicar o que acontece de verdade com o histórico.
@@ -89,6 +85,7 @@ pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 - [x] Como fazer orçamento rápido para cliente sem refazer tudo toda semana (Trilha B) — `/blog/como-fazer-orcamento-rapido-para-cliente`
 - [x] Respostas rápidas do WhatsApp Business: as 5 que todo negócio deveria ter (Trilha A) — `/blog/respostas-rapidas-whatsapp-business`
 - [x] O que perguntar antes de mandar orçamento: 4 perguntas que evitam o "vou pensar" (Trilha B) — `/blog/o-que-perguntar-antes-de-mandar-orcamento`
+- [x] Mensagem de ausência no WhatsApp Business: o que escrever para não parecer robô (Trilha A) — `/blog/mensagem-de-ausencia-whatsapp-business`
 
 ---
 
