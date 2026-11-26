@@ -50,10 +50,6 @@ Não escreva só da trilha A. WhatsApp é a porta de entrada, não o assunto.
 Esta trilha fala do caminho que o cliente percorre do primeiro "oi" até o
 pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 
-- [ ] Onde o cliente desiste entre o orçamento e o fechamento — termo principal: `por que cliente não fecha orçamento`
-      Ângulo: desenhar o caminho do cliente e marcar onde ele cai. É o
-      conteúdo que explica, sem vender, o que o plano Completo faz.
-
 - [ ] Como retomar contato com cliente que sumiu (sem parecer insistente) — termo principal: `como retomar contato com cliente antigo`
       Ângulo: o medo de incomodar é o que trava. Dar o texto e o intervalo,
       e mostrar que tratar isso como rotina tira o peso da decisão.
@@ -86,6 +82,7 @@ pagamento, e das tarefas repetitivas que dá para tirar da mão do dono.
 - [x] Respostas rápidas do WhatsApp Business: as 5 que todo negócio deveria ter (Trilha A) — `/blog/respostas-rapidas-whatsapp-business`
 - [x] O que perguntar antes de mandar orçamento: 4 perguntas que evitam o "vou pensar" (Trilha B) — `/blog/o-que-perguntar-antes-de-mandar-orcamento`
 - [x] Mensagem de ausência no WhatsApp Business: o que escrever para não parecer robô (Trilha A) — `/blog/mensagem-de-ausencia-whatsapp-business`
+- [x] Onde o cliente desiste entre o orçamento e o fechamento (Trilha B) — `/blog/por-que-cliente-nao-fecha-orcamento`
 
 ---
 
